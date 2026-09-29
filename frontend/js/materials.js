@@ -102,24 +102,24 @@ function labelFor(names, id) {
   return names[id] || id || '';
 }
 
-function populateSelect(select, values, firstLabel) {
+function populateSelect(select, values, firstLabel, names) {
   const first = makeElement('option', '', firstLabel);
   first.value = 'all';
   select.replaceChildren(first);
   for (const value of values) {
-    const option = makeElement('option', '', value);
+    const option = makeElement('option', '', names ? labelFor(names, value) : value);
     option.value = value;
     select.appendChild(option);
   }
 }
 
 function populateFaculties() {
-  populateSelect(elements.faculty, Object.keys(CASCADE), 'All faculties');
+  populateSelect(elements.faculty, Object.keys(CASCADE), 'All faculties', FACULTY_NAMES);
 }
 
 function populateDepartments(faculty) {
   const departments = faculty === 'all' ? {} : CASCADE[faculty].departments;
-  populateSelect(elements.department, Object.keys(departments), 'All departments');
+  populateSelect(elements.department, Object.keys(departments), 'All departments', DEPARTMENT_NAMES);
 }
 
 function programsFor(department) {
@@ -132,7 +132,7 @@ function programsFor(department) {
 }
 
 function populatePrograms(department) {
-  populateSelect(elements.program, programsFor(department), 'All programs');
+  populateSelect(elements.program, programsFor(department), 'All programs', PROGRAM_NAMES);
 }
 
 function formatCourseCode(value) {
@@ -299,6 +299,8 @@ function resetFilters() {
   elements.program.value = 'all';
   elements.status.value = 'all';
   elements.sort.value = 'recent';
+  populateDepartments('all');
+  populatePrograms('all');
   refreshCascade();
   loadMaterials();
 }
@@ -309,21 +311,9 @@ function refreshCascade() {
   const departmentField = elements.department.closest('.field');
   const programField = elements.program.closest('.field');
 
-  if (faculty === 'all') {
-    departmentField.hidden = true;
-    populateDepartments('all');
-  } else {
-    departmentField.hidden = false;
-    populateDepartments(faculty);
-  }
-
-  const hasDepartment = department !== 'all';
-  programField.hidden = !hasDepartment;
-  if (!hasDepartment) {
-    populatePrograms('all');
-  } else {
-    populatePrograms(department);
-  }
+  departmentField.hidden = faculty === 'all';
+  programField.hidden = department === 'all';
+  populatePrograms(department);
 }
 
 function handleHide(event) {
@@ -356,13 +346,14 @@ function signOut() {
 
 elements.search.addEventListener('input', () => loadMaterials());
 elements.faculty.addEventListener('change', () => {
-  elements.department.value = 'all';
-  elements.program.value = 'all';
+  const faculty = elements.faculty.value;
+  populateDepartments(faculty);
+  populatePrograms('all');
   refreshCascade();
   loadMaterials();
 });
 elements.department.addEventListener('change', () => {
-  elements.program.value = 'all';
+  populatePrograms(elements.department.value);
   refreshCascade();
   loadMaterials();
 });
