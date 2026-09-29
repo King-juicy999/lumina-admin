@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumina Admin | Users</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body data-page="users">
+
+    <header class="plate-nav">
+      <div class="container plate-nav__inner">
+        <a href="index.html" class="plate-brand">
+          <span class="plate-brand__name">Lumina</span>
+          <span class="plate-brand__tag">Admin Console</span>
+        </a>
+        <nav class="plate-links" aria-label="Admin sections">
+          <a href="index.html">Overview</a>
+          <a href="materials.html">Materials</a>
+          <a href="users.html" aria-current="page">Users</a>
+          <button type="button" class="plate-btn plate-btn--logout" id="logout-btn">Sign out</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+
+      <section class="lp-section">
+        <div class="container">
+          <div class="band-label">
+            <h1>Users</h1>
+            <span class="band-rule" aria-hidden="true"></span>
+            <span class="results-count" id="results-count">0 records</span>
+          </div>
+
+          <div class="control-bar" role="search">
+            <div class="field field-search">
+              <label class="field-label" for="search">Search</label>
+              <input id="search" class="field-input" type="search" placeholder="Name or matric number" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="faculty">Faculty</label>
+              <select id="faculty" class="field-select"></select>
+            </div>
+          </div>
+
+          <div class="records-grid" id="records"></div>
+
+          <div class="empty-state" id="empty-state" hidden>
+            <p>No users match that search.</p>
+            <button class="empty-reset" id="empty-reset" type="button">Clear the filters</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="colophon">
+      <div class="container colophon__inner">
+        <p>Private console &middot; not student facing</p>
+        <nav>
+          <a href="index.html">Overview</a>
+          <a href="materials.html">Materials</a>
+          <a href="users.html">Users</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script src="js/users.js"></script>
+  </body>
+</html>

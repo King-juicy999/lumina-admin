@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumina Admin | Materials</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body data-page="materials">
+
+    <header class="plate-nav">
+      <div class="container plate-nav__inner">
+        <a href="index.html" class="plate-brand">
+          <span class="plate-brand__name">Lumina</span>
+          <span class="plate-brand__tag">Admin Console</span>
+        </a>
+        <nav class="plate-links" aria-label="Admin sections">
+          <a href="index.html">Overview</a>
+          <a href="materials.html" aria-current="page">Materials</a>
+          <a href="users.html">Users</a>
+          <button type="button" class="plate-btn plate-btn--logout" id="logout-btn">Sign out</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+
+      <section class="lp-section">
+        <div class="container">
+          <div class="band-label">
+            <h1>Materials</h1>
+            <span class="band-rule" aria-hidden="true"></span>
+            <span class="results-count" id="results-count">0 records</span>
+            <span class="filter-trail" id="filter-trail"></span>
+          </div>
+
+          <div class="control-bar" role="search">
+            <div class="field field-search">
+              <label class="field-label" for="search">Search</label>
+              <input id="search" class="field-input" type="search" placeholder="CSC333 or Database Systems" autocomplete="off" />
+            </div>
+            <div class="field field-menu" data-level="faculty">
+              <label class="field-label" for="faculty">Faculty</label>
+              <select id="faculty" class="field-select"></select>
+            </div>
+            <div class="field field-menu" data-level="department" hidden>
+              <label class="field-label" for="department">Department</label>
+              <select id="department" class="field-select" disabled></select>
+            </div>
+            <div class="field field-menu" data-level="program" hidden>
+              <label class="field-label" for="program">Program</label>
+              <select id="program" class="field-select" disabled></select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="status">Status</label>
+              <select id="status" class="field-select">
+                <option value="all">All</option>
+                <option value="live">Live</option>
+                <option value="hidden">Hidden</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="sort">Sort</label>
+              <select id="sort" class="field-select">
+                <option value="recent">Newest first</option>
+                <option value="downloads">Most downloaded</option>
+                <option value="course">By course code</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="records-grid" id="records"></div>
+
+          <div class="empty-state" id="empty-state" hidden>
+            <p>No materials match that search.</p>
+            <button class="empty-reset" id="empty-reset" type="button">Clear the filters</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="colophon">
+      <div class="container colophon__inner">
+        <p>Private console &middot; not student facing</p>
+        <nav>
+          <a href="index.html">Overview</a>
+          <a href="materials.html">Materials</a>
+          <a href="users.html">Users</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script src="js/materials.js"></script>
+  </body>
+</html>

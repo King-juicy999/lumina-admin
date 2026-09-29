@@ -16,3 +16,13 @@ mcp-probe.mjs
 *.log
 
 CLAUDE.md
+
+.env
+.env.*
+!.env.example
+node_modules/
+.venv/
+venv/
+.DS_Store
+.idea/
+.vscode/

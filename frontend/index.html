@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumina Admin | Digital Card Catalogue</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body data-page="index">
+
+    <header class="plate-nav">
+      <div class="container plate-nav__inner">
+        <a href="index.html" class="plate-brand">
+          <span class="plate-brand__name">Lumina</span>
+          <span class="plate-brand__tag">Admin Console</span>
+        </a>
+        <nav class="plate-links" aria-label="Admin sections">
+          <a href="index.html" aria-current="page">Overview</a>
+          <a href="materials.html">Materials</a>
+          <a href="users.html">Users</a>
+          <button type="button" class="plate-btn plate-btn--logout" id="logout-btn">Sign out</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+
+      <section class="desk">
+        <div class="container desk-grid">
+          <article class="master-card">
+            <div class="master-card__head">
+              <span class="master-card__ref">LUMINA / ADMIN / OVERVIEW</span>
+              <span class="master-card__stamp">Private</span>
+            </div>
+            <div class="master-card__body">
+              <h1>The whole library, <em>under control</em>.</h1>
+              <p class="master-card__lede">
+                Every material filed on Lumina, every account that filed it, and every request
+                still waiting. Moderation runs from this console and nowhere else.
+              </p>
+              <div class="master-card__actions">
+                <a class="plate-btn plate-btn--primary" href="materials.html">Moderate materials</a>
+                <a class="plate-btn plate-btn--ghost" href="users.html">Manage users</a>
+              </div>
+            </div>
+            <div class="master-card__foot">
+              <span>Anchor University Lagos</span>
+              <span>Single operator</span>
+              <span>All actions logged</span>
+            </div>
+          </article>
+
+          <aside class="freshly" aria-label="Attention needed">
+            <p class="freshly__head"><span class="live-dot" aria-hidden="true"></span> Needs a decision</p>
+            <p class="freshly__activity-line" id="attention-line">Loading the queue</p>
+            <div class="freshly-feed" id="attention-list"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="lp-stats" aria-label="Library stats">
+        <div class="container lp-stats__inner">
+          <div class="lp-stats__cell">
+            <p class="lp-stats__value" id="stat-total">0</p>
+            <p class="lp-stats__label">Records on file</p>
+          </div>
+          <div class="lp-stats__cell">
+            <p class="lp-stats__value" id="stat-week">0</p>
+            <p class="lp-stats__label">Added this week</p>
+          </div>
+          <div class="lp-stats__cell">
+            <p class="lp-stats__value" id="stat-programs">0</p>
+            <p class="lp-stats__label">Programmes</p>
+          </div>
+          <div class="lp-stats__cell">
+            <p class="lp-stats__value" id="stat-hidden">0</p>
+            <p class="lp-stats__label">Hidden</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="lp-section lp-section--deep" aria-labelledby="coverage-heading">
+        <div class="container">
+          <div class="band-label">
+            <h2 id="coverage-heading">Where the library is thin.</h2>
+            <span class="band-rule" aria-hidden="true"></span>
+            <a href="materials.html">Open the catalogue</a>
+          </div>
+          <div class="records-grid" id="coverage-grid"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="colophon">
+      <div class="container colophon__inner">
+        <p>Private console &middot; not student facing</p>
+        <nav>
+          <a href="index.html">Overview</a>
+          <a href="materials.html">Materials</a>
+          <a href="users.html">Users</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+  </body>
+</html>
