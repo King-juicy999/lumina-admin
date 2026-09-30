@@ -1,13 +1,7 @@
-const USERS = [
-  { id: 1, full_name: 'Oluwaseun Adeyemi', email: 'adeyemi.o@aul.edu.ng', matric_number: 'AUL/CSC/21/0142', faculty: 'Computing', department: 'Computer Science', program: 'Computer Science', level: 300, is_staff: false, material_count: 4, joined_at: '2024-09-03' },
-  { id: 2, full_name: 'Chidinma Okafor', email: 'okafor.c@aul.edu.ng', matric_number: 'AUL/CSC/22/0871', faculty: 'Computing', department: 'Computer Science', program: 'Computer Science', level: 200, is_staff: false, material_count: 3, joined_at: '2024-10-11' },
-  { id: 3, full_name: 'Tunde Bakare', email: 'bakare.t@aul.edu.ng', matric_number: 'AUL/CSC/20/0315', faculty: 'Computing', department: 'Computer Science', program: 'Computer Science', level: 400, is_staff: false, material_count: 2, joined_at: '2023-09-18' },
-  { id: 4, full_name: 'Aisha Bello', email: 'bello.a@aul.edu.ng', matric_number: 'AUL/CSC/23/1104', faculty: 'Computing', department: 'Computer Science', program: 'Computer Science', level: 300, is_staff: false, material_count: 1, joined_at: '2025-01-22' },
-  { id: 5, full_name: 'Segun Williams', email: 'williams.s@aul.edu.ng', matric_number: 'AUL/SCT/22/0640', faculty: 'Sciences', department: 'Mathematics', program: 'Mathematics', level: 200, is_staff: false, material_count: 2, joined_at: '2024-11-05' },
-  { id: 6, full_name: 'Ngozi Eze', email: 'eze.n@aul.edu.ng', matric_number: 'AUL/CSC/24/1502', faculty: 'Computing', department: 'Computer Science', program: 'Computer Science', level: 100, is_staff: false, material_count: 1, joined_at: '2025-02-14' },
-  { id: 7, full_name: 'Ibrahim Musa', email: 'musa.i@aul.edu.ng', matric_number: 'AUL/PHY/24/0333', faculty: 'Sciences', department: 'Physics', program: 'Physics', level: 100, is_staff: false, material_count: 1, joined_at: '2025-03-02' },
-  { id: 8, full_name: 'Fatima Abdullahi', email: 'abdullahi.f@aul.edu.ng', matric_number: 'AUL/ACC/22/0488', faculty: 'Management Sciences', department: 'Accounting', program: 'Accounting', level: 200, is_staff: true, material_count: 0, joined_at: '2024-09-27' }
-];
+const API = 'https://william999.pythonanywhere.com/api';
+const USERS_URL = `${API}/accounts/users/`;
+
+let users = [];
 
 const elements = {
   search: document.getElementById('search'),
@@ -31,9 +25,11 @@ function makeElement(tag, className, text) {
 }
 
 function formatDate(value) {
-  const [year, month, day] = value.split('-');
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${Number(day)} ${months[Number(month) - 1]} ${year}`;
+  return new Date(value).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
 }
 
 function initials(name) {
@@ -45,39 +41,42 @@ function initials(name) {
     .join('');
 }
 
-function populateSelect(select, values, firstLabel) {
+function populateSelect(select, values, firstLabel, names) {
   const first = makeElement('option', '', firstLabel);
   first.value = 'all';
   select.replaceChildren(first);
   for (const value of values) {
-    const option = makeElement('option', '', value);
+    const option = makeElement('option', '', names ? labelFor(names, value) : value);
     option.value = value;
     select.appendChild(option);
   }
 }
 
 function populateFaculties() {
-  const names = [...new Set(USERS.map((user) => user.faculty))].sort();
-  populateSelect(elements.faculty, names, 'All faculties');
+  populateSelect(elements.faculty, Object.keys(CASCADE), 'All faculties', FACULTY_NAMES);
+}
+
+function facultyMatches(user, faculty) {
+  return user.faculty === faculty || user.faculty === FACULTY_NAMES[faculty];
 }
 
 function matchesSearch(user, term) {
   if (!term) {
     return true;
   }
-  const name = user.full_name.toLowerCase();
-  const matric = user.matric_number.toLowerCase();
+  const name = (user.full_name || '').toLowerCase();
+  const matric = (user.matric_number || '').toLowerCase();
   return name.includes(term) || matric.includes(term);
 }
 
 function filteredUsers() {
   const term = elements.search.value.trim().toLowerCase();
   const faculty = elements.faculty.value;
-  return USERS.filter((user) => {
+  return users.filter((user) => {
     if (!matchesSearch(user, term)) {
       return false;
     }
-    return faculty === 'all' || user.faculty === faculty;
+    return faculty === 'all' || facultyMatches(user, faculty);
   });
 }
 
@@ -87,7 +86,7 @@ function buildBody(user) {
   body.appendChild(makeElement('p', 'resource-card__ref', user.matric_number));
 
   const meta = makeElement('p', 'resource-card__meta');
-  meta.textContent = `${user.faculty} / ${user.department} / L${user.level} / joined ${formatDate(user.joined_at)}`;
+  meta.textContent = `${labelFor(FACULTY_NAMES, user.faculty)} / ${labelFor(DEPARTMENT_NAMES, user.department)} / L${user.level} / joined ${formatDate(user.date_joined)}`;
   body.appendChild(meta);
 
   if (user.is_staff) {
@@ -127,6 +126,26 @@ function render() {
   elements.empty.hidden = visible.length > 0;
 }
 
+async function loadUsers() {
+  try {
+    const token = sessionStorage.getItem('lumina_access_token');
+    const response = await fetch(USERS_URL, {
+      headers: {
+        Accept: 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`status ${response.status}`);
+    }
+    users = await response.json();
+  } catch (error) {
+    console.error('Failed to load the user list from Lumina.', error);
+    users = [];
+  }
+  render();
+}
+
 function resetFilters() {
   elements.search.value = '';
   elements.faculty.value = 'all';
@@ -154,4 +173,4 @@ elements.emptyReset.addEventListener('click', resetFilters);
 elements.logout.addEventListener('click', signOut);
 
 populateFaculties();
-render();
+loadUsers();
