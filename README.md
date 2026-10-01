@@ -286,12 +286,34 @@ search or changing any filter re-renders instantly with no further network call.
 `/login.html` before making any request, and on a 401 or 403 it clears both
 tokens and redirects there too.
 
-`filteredUsers` applies the search term and the three hierarchy filters.
-`matchesSearch` matches on `full_name` or `matric_number`, case insensitively,
-and tolerates either being null. `facultyMatches`, `departmentMatches` and
-`programMatches` all go through one `fieldMatches` helper that accepts a user
-whose value is either the slug or the full name, because the `User` model stores
-those three as free text rather than as references to the hierarchy.
+`filteredUsers` applies the search term, the three hierarchy filters, the level
+and the staff only toggle. `matchesSearch` matches on `full_name` or
+`matric_number`, case insensitively, and tolerates either being null.
+`facultyMatches`, `departmentMatches` and `programMatches` all go through one
+`fieldMatches` helper that accepts a user whose value is either the slug or the
+full name, because the `User` model stores those three as free text rather than
+as references to the hierarchy. `levelMatches` compares `String(user.level)`
+against the dropdown value, because the API sends the level as a string.
+
+A `LEVEL_NAMES` map at the top of `users.js` holds the four levels the system
+uses, 100, 200, 300 and 400, displayed as "100 level" and so on.
+`populateLevels` fills the control from those keys rather than from the data, so
+100 level is offered even before anybody is in it, and a level nobody is in
+never turns into an empty filter. It runs at load time next to the other
+populators, not inside `loadUsers`, because the list of levels does not depend
+on the request.
+
+Sorting is `sortedUsers`, applied by `render` on top of the filtered list. It
+copies the array before sorting, because `sort` mutates in place and the module
+level `users` must keep its original order. "Newest first" is the default and
+sorts on `date_joined` descending, "Oldest first" reverses it, and the other two
+sort on `full_name` and `material_count`.
+
+A stat band sits above the grid with four figures: accounts on file, students,
+staff, and joined this week. `renderStats` writes them once, after the fetch.
+They count every account, not the filtered set, so changing a filter moves the
+grid and the record count but leaves the figures alone. `joinedThisWeek` is a
+rolling seven days from the browser clock, the same rule the overview uses.
 
 The faculty, department and program controls use the same cascade as the
 materials page, built from the same `CASCADE` data, so the two pages cannot
@@ -348,7 +370,10 @@ There is no `prefers-reduced-motion` block yet, so both animations run for
 everyone. That is a gap worth closing.
 
 Two breakpoints exist, at 900px and 640px. Focus rings are visible on the form
-controls, and every control has a label.
+controls, and every control has a label. The staff only toggle is a checkbox
+wrapped in a `.field-check__box` pill, restyled through `:has()` so the focus
+ring and the checked state both come from the input rather than from a class
+toggled in JavaScript.
 
 ## Rules for changing this
 
@@ -395,3 +420,6 @@ have. Treat it as a starting point, not as truth.
 - `API` pointed at the deployed backend in all four page scripts, and the login
   error bands split three ways so an unreadable response body can no longer put
   a browser parser message on the page.
+- Users page filled out. A sort control with newest first as the default, a
+  level filter covering all four levels, a staff only toggle, and a four figure
+  stat band above the grid.

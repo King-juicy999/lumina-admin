@@ -1,6 +1,13 @@
 const API = 'https://william999.pythonanywhere.com/api';
 const USERS_URL = `${API}/accounts/users/`;
 
+const LEVEL_NAMES = {
+  100: '100 level',
+  200: '200 level',
+  300: '300 level',
+  400: '400 level'
+};
+
 let users = [];
 
 const elements = {
@@ -84,8 +91,8 @@ function populatePrograms(department) {
 }
 
 function populateLevels() {
-  const levels = [...new Set(users.map((user) => String(user.level)).filter(Boolean))].sort();
-  populateSelect(elements.level, levels, 'All levels');
+  const levels = Object.keys(LEVEL_NAMES).sort((a, b) => a - b);
+  populateSelect(elements.level, levels, 'All levels', LEVEL_NAMES);
 }
 
 function levelMatches(user, level) {
@@ -255,7 +262,6 @@ async function loadUsers() {
       throw new Error(`status ${response.status}`);
     }
     users = await response.json();
-    populateLevels();
     renderStats();
   } catch (error) {
     console.error('Failed to load the user list from Lumina.', error);
@@ -314,5 +320,6 @@ elements.logout.addEventListener('click', signOut);
 
 populateFaculties();
 populateDepartments('all');
+populateLevels();
 refreshCascade();
 loadUsers();
