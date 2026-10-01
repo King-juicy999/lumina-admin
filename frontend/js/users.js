@@ -1,4 +1,4 @@
-const API = 'https://william999.pythonanywhere.com/api';
+const API = 'http://localhost:8000/api';
 const USERS_URL = `${API}/accounts/users/`;
 
 let users = [];

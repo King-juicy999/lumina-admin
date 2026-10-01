@@ -48,28 +48,39 @@ and no build step. Opening `index.html` through any static server is enough.
 ## Running it
 
 There is nothing to install. Serve the `frontend/` directory with any static
-server and open it:
+server on port 5500 and open it:
 
 ```
-python -m http.server 8000 --directory frontend
+python -m http.server 5500 --directory frontend
 ```
 
-Then open `http://localhost:8000/index.html`.
+Then open `http://localhost:5500/index.html`.
+
+Port 5500 is not a preference, it is a requirement. See "Running it locally"
+below for the three conditions that have to hold before the pages will show
+real data.
 
 There is no build step, so there is nothing to compile and nothing to reinstall.
 A hard refresh picks up every change.
 
 ## The API
 
-Both pages call the deployed main Lumina backend:
+Both pages call the main Lumina backend. `API` is hardcoded at the top of
+`js/main.js`, `js/materials.js` and `js/users.js`. There is no environment
+variable and no config file, so pointing the console somewhere else means
+changing those three lines.
+
+It currently reads:
+
+```
+http://localhost:8000/api
+```
+
+For production, change all three back to:
 
 ```
 https://william999.pythonanywhere.com/api
 ```
-
-That base URL is hardcoded at the top of `js/main.js`, `js/materials.js` and
-`js/users.js` as `API`. To point the console somewhere else, change it in those
-three files. There is no environment variable and no config file.
 
 The two materials requests are:
 
@@ -91,18 +102,68 @@ It returns a flat array with no pagination wrapper. Each record has `id`,
 `full_name`, `email`, `matric_number`, `faculty`, `department`, `program`, `level`
 as a string, `is_staff`, `date_joined` as an ISO datetime, and `material_count`.
 
-## Authentication
+That endpoint is `IsAuthenticated` plus `IsAdminUser`, so it returns 401 unless
+the token belongs to an account with `is_staff` set. It is not a public list.
 
-Tokens live in `sessionStorage` under `lumina_access_token` and
-`lumina_refresh_token`, written by the main app on sign in. Every fetch reads the
-access token and sends it as `Authorization: Bearer <token>`.
+## Running it locally
 
-The console sends the token when it has one and makes the request anyway when it
-does not, so a public endpoint still renders and an admin only endpoint returns
-401. There is no login page here and no route guard, so opening a page directly
-always loads the shell.
+Three things must line up, and each has failed on its own before.
 
-Sign out clears both keys and sends the browser to `/login.html`.
+**1. Serve the frontend on port 5500.** The main app's `CORS_ALLOWED_ORIGINS`
+lists `http://localhost:5500` and `http://127.0.0.1:5500` only, so any other port
+gets its response blocked by the browser. It matters that 5500 is also the origin
+the main app is served from locally, because that is what makes the next point
+work.
+
+**2. Disable the HTTPS redirect locally.** The main app sets
+`SECURE_SSL_REDIRECT = True` for production. Left on, a request to
+`http://localhost:8000` gets a 301 to `https://localhost:8000`, where there is no
+certificate, and the request dies before reaching a view. In
+`lumina/backend/core/settings.py`, add near the top:
+
+```python
+LOCAL = os.environ.get('LOCAL_DEV', '').lower() in ('1', 'true', 'yes')
+```
+
+then change the one line to `SECURE_SSL_REDIRECT = not LOCAL`, and set
+`LOCAL_DEV=1` in the local `.env`. Production is unaffected because the flag is
+absent there. `DJANGO_SECRET_KEY` is already read from the environment, so the
+pattern is already in the file.
+
+**3. Sign in to the main app first.** Tokens live in `sessionStorage`, which is
+scoped to one origin and one browser profile. `sessionStorage` is not shared
+between origins, so a token written at `localhost:5500` is invisible to a page
+served from any other port, and equally a token on a production domain is
+invisible locally. Signing in to the main app on the same origin, in the same
+browser, before opening the admin pages, is what puts the token where the admin
+pages can read it.
+
+There is no login page in this repo and no route guard, so opening a page
+directly always loads the shell and then either renders data or shows the empty
+state.
+
+### When the users page looks empty
+
+The empty state means one of three things, and they look identical on screen:
+
+- **No token.** The `Authorization` header was never sent. Check `console.error`
+  for the 401.
+- **Token without admin rights.** `is_staff` is false on that account, so
+  `IsAdminUser` rejects it. Check the account itself, not the token.
+- **No users.** The database really is empty for that filter.
+
+A network 404 means the URL is wrong. A CORS error in the console means the port
+is not 5500. Those are the three signals worth reading before assuming the data
+is missing.
+
+To count what is actually there, from `lumina/backend/`:
+
+```
+python manage.py shell -c "from accounts.models import User; print(User.objects.count(), User.objects.filter(is_staff=True).count())"
+```
+
+The second number is the one that decides whether the users endpoint will answer
+at all.
 
 ## js/hierarchy.js
 
@@ -287,3 +348,5 @@ have. Treat it as a starting point, not as truth.
   hierarchy data moved into `js/hierarchy.js` and shared by both pages.
 - Department and program filters added to the users page, matching the materials
   cascade, and the search field capped so it stops spanning the control bar.
+- `API` pointed at `http://localhost:8000/api` in all three page scripts for local
+  work, with the production value and the three local conditions written down.
