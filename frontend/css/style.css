@@ -1000,3 +1000,79 @@ body[data-page='users'] .field-search {
     gap: 0.5rem 1rem;
   }
 }
+
+.login-shell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3.4rem 1rem;
+  background-image: var(--ruled);
+}
+
+.login-card {
+  width: min(26rem, 100%);
+  overflow: hidden;
+  background: var(--record);
+  border: var(--edge-strong);
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 18px 34px -18px rgba(32, 48, 63, 0.38),
+    0 2px 6px rgba(32, 48, 63, 0.08);
+  animation: card-files-in 700ms var(--ease) both;
+}
+
+.login-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.4rem;
+  border-bottom: var(--rule-double);
+}
+
+.login-card__head h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.5rem;
+}
+
+.login-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.6rem 1.4rem 1.8rem;
+}
+
+.login-note {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.login-error {
+  margin: 0;
+  min-height: 1.25rem;
+  color: var(--filing-red);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.login-submit {
+  justify-content: center;
+  padding: 0.66rem 1rem;
+}
+
+.login-submit:disabled {
+  background: var(--ink-soft);
+  cursor: progress;
+}

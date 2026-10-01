@@ -28,11 +28,13 @@ backend/
     management/commands/ empty, reserved for admin commands
 frontend/
   index.html             the overview
+  login.html             the sign in page
   materials.html         the material catalogue
   users.html             the account list
   css/style.css          the whole design system
   js/
     hierarchy.js         shared faculty, department and program data
+    login.js             sign in page logic
     main.js              overview page logic
     materials.js         materials page logic
     users.js             users page logic
@@ -51,14 +53,17 @@ There is nothing to install. Serve the `frontend/` directory with any static
 server on port 5500 and open it:
 
 ```
-python -m http.server 5500 --directory frontend
+python -m http.server 5500
 ```
 
-Then open `http://localhost:5500/index.html`.
+Run that from inside `frontend/`, then open `http://localhost:5500/index.html`.
+Opening `login.html` directly is the same thing.
 
-Port 5500 is not a preference, it is a requirement. See "Running it locally"
-below for the three conditions that have to hold before the pages will show
-real data.
+Port 5500 is not a preference, it is a requirement. The main backend allows
+`http://localhost:5500` and `http://127.0.0.1:5500` as origins and nothing
+else, so any other port gets its response blocked by the browser. See "Running
+it locally" below for the other two conditions that have to hold before the
+pages will show real data.
 
 There is no build step, so there is nothing to compile and nothing to reinstall.
 A hard refresh picks up every change.
@@ -105,6 +110,52 @@ as a string, `is_staff`, `date_joined` as an ISO datetime, and `material_count`.
 That endpoint is `IsAuthenticated` plus `IsAdminUser`, so it returns 401 unless
 the token belongs to an account with `is_staff` set. It is not a public list.
 
+## Authentication
+
+`GET /accounts/users/` needs a staff JWT, and the console has no way to get one
+on its own. Browser storage is scoped to one origin, so a token the main app
+writes on its own domain is invisible here and cannot be reused. The console
+signs in for itself.
+
+The main app's login endpoint is `POST {API}/accounts/login/`. It takes
+`matric_number` and `password`, not email. The server uppercases the matric
+number itself, so the console sends what was typed. It answers 200 with `user`,
+`access` and `refresh`, 401 on wrong details, 400 on missing fields, and 429
+after five anonymous attempts in a minute. The `user` object it returns has no
+`is_staff` key, so a successful login is not proof of staff rights.
+
+`login.html` and `js/login.js` do this in two calls:
+
+1. Post `matric_number` and `password` as JSON to `/accounts/login/`. Take the
+   `access` and `refresh` values out of the response.
+2. Request `/accounts/users/` with that access token as a `Bearer` header. This
+   is where the staff check actually happens. A 403 means a signed in account
+   with no admin rights, and nothing is stored. Any other non-200 is treated as
+   a temporary failure.
+
+Only when the second call answers 200 are the tokens written to
+`sessionStorage` under `lumina_access_token` and `lumina_refresh_token`, and
+only then does the page go to `index.html`.
+
+Loading `login.html` clears both tokens first, so a stale or half written one
+cannot carry over. The submit button is disabled while either request runs.
+A `TypeError` from `fetch` means the network never answered, which in practice
+means the wrong origin or no backend running, so that case gets its own message
+naming localhost on port 5500. Everything else is 400, 401, 429 and the admin
+refusal. Status codes and response bodies go to `console.error` only and never
+reach the DOM.
+
+SimpleJWT issues access tokens that last 30 minutes. Nothing in the console
+refreshes them. When one expires the users endpoint answers 401 and the page
+sends you back to `login.html`, which is the correct behaviour, just with a
+sign in to do again.
+
+`loadUsers` in `users.js` is the guard. It redirects to `/login.html` when
+there is no stored token, before fetching, and it redirects and clears both
+tokens when the endpoint answers 401 or 403. `signOut` in `main.js` and
+`materials.js` already cleared the tokens and pointed at `/login.html`, so those
+buttons were waiting on this page.
+
 ## Running it locally
 
 Three things must line up, and each has failed on its own before.
@@ -130,30 +181,24 @@ then change the one line to `SECURE_SSL_REDIRECT = not LOCAL`, and set
 absent there. `DJANGO_SECRET_KEY` is already read from the environment, so the
 pattern is already in the file.
 
-**3. Sign in to the main app first.** Tokens live in `sessionStorage`, which is
+**3. Sign in through the console.** Tokens live in `sessionStorage`, which is
 scoped to one origin and one browser profile. `sessionStorage` is not shared
-between origins, so a token written at `localhost:5500` is invisible to a page
-served from any other port, and equally a token on a production domain is
-invisible locally. Signing in to the main app on the same origin, in the same
-browser, before opening the admin pages, is what puts the token where the admin
-pages can read it.
+between origins, so a token written by the main app on its own domain is
+invisible to the console and cannot be reused. Open `login.html` and sign in
+with a staff account. See "Authentication" above for what that does.
 
-There is no login page in this repo and no route guard, so opening a page
-directly always loads the shell and then either renders data or shows the empty
-state.
+Only `users.html` is guarded. Opening `index.html` or `materials.html` directly
+still loads the shell and then either renders data or shows the empty state.
 
 ### When the users page looks empty
 
-The empty state means one of three things, and they look identical on screen:
-
-- **No token.** The `Authorization` header was never sent. Check `console.error`
-  for the 401.
-- **Token without admin rights.** `is_staff` is false on that account, so
-  `IsAdminUser` rejects it. Check the account itself, not the token.
-- **No users.** The database really is empty for that filter.
+The empty state means the database is genuinely empty for that filter. The two
+failure cases that used to look identical now send you back to `login.html`
+instead: a missing token and a token without admin rights. What is left on
+screen is only a real empty result.
 
 A network 404 means the URL is wrong. A CORS error in the console means the port
-is not 5500. Those are the three signals worth reading before assuming the data
+is not 5500. Those are the two signals worth reading before assuming the data
 is missing.
 
 To count what is actually there, from `lumina/backend/`:
@@ -249,6 +294,10 @@ A card grid of every account that has signed up.
 `loadUsers` fetches `/accounts/users/` once on load and stores the array in a
 module level `users`. Filtering after that is entirely client side, so typing in
 search or changing any filter re-renders instantly with no further network call.
+
+`loadUsers` also guards the page. With no stored token it redirects to
+`/login.html` before making any request, and on a 401 or 403 it clears both
+tokens and redirects there too.
 
 `filteredUsers` applies the search term and the three hierarchy filters.
 `matchesSearch` matches on `full_name` or `matric_number`, case insensitively,
@@ -350,3 +399,9 @@ have. Treat it as a starting point, not as truth.
   cascade, and the search field capped so it stops spanning the control bar.
 - `API` pointed at `http://localhost:8000/api` in all three page scripts for local
   work, with the production value and the three local conditions written down.
+- Sign in added. `login.html` and `js/login.js` post a matric number and password
+  to `/accounts/login/`, confirm staff access with one call to
+  `/accounts/users/` before storing anything, and write the tokens to
+  `sessionStorage`. `loadUsers` in `users.js` redirects to `login.html` when
+  there is no token and on a 401 or 403, so the empty list was never really
+  empty, it was unauthorised.

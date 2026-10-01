@@ -178,14 +178,25 @@ function render() {
 }
 
 async function loadUsers() {
+  const token = sessionStorage.getItem('lumina_access_token');
+  if (!token) {
+    window.location.href = '/login.html';
+    return;
+  }
+
   try {
-    const token = sessionStorage.getItem('lumina_access_token');
     const response = await fetch(USERS_URL, {
       headers: {
         Accept: 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
+        Authorization: `Bearer ${token}`
       }
     });
+    if (response.status === 401 || response.status === 403) {
+      sessionStorage.removeItem('lumina_access_token');
+      sessionStorage.removeItem('lumina_refresh_token');
+      window.location.href = '/login.html';
+      return;
+    }
     if (!response.ok) {
       throw new Error(`status ${response.status}`);
     }

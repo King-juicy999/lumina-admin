@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumina Admin | Sign in</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body data-page="login">
+
+    <header class="plate-nav">
+      <div class="container plate-nav__inner">
+        <a href="index.html" class="plate-brand">
+          <span class="plate-brand__name">Lumina</span>
+          <span class="plate-brand__tag">Admin Console</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <section class="login-shell">
+        <div class="login-card">
+
+          <div class="login-card__head">
+            <h1>Sign in</h1>
+            <span class="stamp stamp--quiet">Staff only</span>
+          </div>
+
+          <form class="login-card__body" id="login-form" novalidate>
+            <p class="login-note">Only staff accounts can open this console. Use your Lumina matric number.</p>
+
+            <div class="login-field">
+              <label class="field-label" for="matric-number">Matric number</label>
+              <input id="matric-number" class="field-input" type="text" placeholder="AUL/XXX/YY/NNN" autocomplete="username" autocapitalize="characters" spellcheck="false" required />
+            </div>
+
+            <div class="login-field">
+              <label class="field-label" for="password">Password</label>
+              <input id="password" class="field-input" type="password" autocomplete="current-password" required />
+            </div>
+
+            <p class="login-error" id="login-error" role="alert"></p>
+
+            <button type="submit" class="plate-btn plate-btn--primary login-submit" id="login-submit">Sign in</button>
+          </form>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="colophon">
+      <div class="container colophon__inner">
+        <p>Private console &middot; not student facing</p>
+      </div>
+    </footer>
+
+    <script src="js/login.js"></script>
+  </body>
+</html>
