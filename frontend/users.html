@@ -28,6 +28,27 @@
 
     <main>
 
+      <section class="lp-stats" aria-label="Account stats">
+        <div class="container lp-stats__inner">
+          <div class="lp-stats__cell">
+            <p class="lp-stats__value" id="stat-total">0</p>
+            <p class="lp-stats__label">Accounts on file</p>
+          </div>
+          <div class="lp-stats__cell">
+            <p class="lp-stats__value" id="stat-students">0</p>
+            <p class="lp-stats__label">Students</p>
+          </div>
+          <div class="lp-stats__cell">
+            <p class="lp-stats__value" id="stat-staff">0</p>
+            <p class="lp-stats__label">Staff</p>
+          </div>
+          <div class="lp-stats__cell">
+            <p class="lp-stats__value" id="stat-week">0</p>
+            <p class="lp-stats__label">Joined this week</p>
+          </div>
+        </div>
+      </section>
+
       <section class="lp-section">
         <div class="container">
           <div class="band-label">
@@ -52,6 +73,26 @@
             <div class="field field-menu" data-level="program" hidden>
               <label class="field-label" for="program">Program</label>
               <select id="program" class="field-select"></select>
+            </div>
+            <div class="field field-menu">
+              <label class="field-label" for="level">Level</label>
+              <select id="level" class="field-select"></select>
+            </div>
+            <div class="field field-menu">
+              <label class="field-label" for="sort">Sort</label>
+              <select id="sort" class="field-select">
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="name">By name</option>
+                <option value="materials">Most materials</option>
+              </select>
+            </div>
+            <div class="field field-menu field-check">
+              <label class="field-label" for="staff-only">Show</label>
+              <label class="field-check__box">
+                <input id="staff-only" type="checkbox" />
+                <span>Staff only</span>
+              </label>
             </div>
           </div>
 

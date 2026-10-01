@@ -8,11 +8,18 @@ const elements = {
   faculty: document.getElementById('faculty'),
   department: document.getElementById('department'),
   program: document.getElementById('program'),
+  level: document.getElementById('level'),
+  sort: document.getElementById('sort'),
+  staffOnly: document.getElementById('staff-only'),
   records: document.getElementById('records'),
   count: document.getElementById('results-count'),
   empty: document.getElementById('empty-state'),
   emptyReset: document.getElementById('empty-reset'),
-  logout: document.getElementById('logout-btn')
+  logout: document.getElementById('logout-btn'),
+  statTotal: document.getElementById('stat-total'),
+  statStudents: document.getElementById('stat-students'),
+  statStaff: document.getElementById('stat-staff'),
+  statWeek: document.getElementById('stat-week')
 };
 
 function makeElement(tag, className, text) {
@@ -76,6 +83,44 @@ function populatePrograms(department) {
   populateSelect(elements.program, programsFor(department), 'All programs', PROGRAM_NAMES);
 }
 
+function populateLevels() {
+  const levels = [...new Set(users.map((user) => String(user.level)).filter(Boolean))].sort();
+  populateSelect(elements.level, levels, 'All levels');
+}
+
+function levelMatches(user, level) {
+  return String(user.level) === level;
+}
+
+function sortedUsers(list) {
+  const byDate = (a, b) => new Date(b.date_joined) - new Date(a.date_joined);
+  const sorted = [...list];
+
+  if (elements.sort.value === 'oldest') {
+    return sorted.sort((a, b) => new Date(a.date_joined) - new Date(b.date_joined));
+  }
+  if (elements.sort.value === 'name') {
+    return sorted.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
+  }
+  if (elements.sort.value === 'materials') {
+    return sorted.sort((a, b) => (b.material_count || 0) - (a.material_count || 0));
+  }
+  return sorted.sort(byDate);
+}
+
+function joinedThisWeek(user) {
+  const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  return Date.now() - new Date(user.date_joined).getTime() < oneWeek;
+}
+
+function renderStats() {
+  const staff = users.filter((user) => user.is_staff).length;
+  elements.statTotal.textContent = users.length;
+  elements.statStudents.textContent = users.length - staff;
+  elements.statStaff.textContent = staff;
+  elements.statWeek.textContent = users.filter(joinedThisWeek).length;
+}
+
 function refreshCascade() {
   const faculty = elements.faculty.value;
   const department = elements.department.value;
@@ -117,6 +162,9 @@ function filteredUsers() {
   const faculty = elements.faculty.value;
   const department = elements.department.value;
   const program = elements.program.value;
+  const level = elements.level.value;
+  const staffOnly = elements.staffOnly.checked;
+
   return users.filter((user) => {
     if (!matchesSearch(user, term)) {
       return false;
@@ -127,7 +175,13 @@ function filteredUsers() {
     if (department !== 'all' && !departmentMatches(user, department)) {
       return false;
     }
-    return program === 'all' || programMatches(user, program);
+    if (program !== 'all' && !programMatches(user, program)) {
+      return false;
+    }
+    if (level !== 'all' && !levelMatches(user, level)) {
+      return false;
+    }
+    return !staffOnly || Boolean(user.is_staff);
   });
 }
 
@@ -171,7 +225,7 @@ function buildRecord(user) {
 }
 
 function render() {
-  const visible = filteredUsers();
+  const visible = sortedUsers(filteredUsers());
   elements.records.replaceChildren(...visible.map(buildRecord));
   elements.count.textContent = `${visible.length} ${visible.length === 1 ? 'record' : 'records'}`;
   elements.empty.hidden = visible.length > 0;
@@ -201,6 +255,8 @@ async function loadUsers() {
       throw new Error(`status ${response.status}`);
     }
     users = await response.json();
+    populateLevels();
+    renderStats();
   } catch (error) {
     console.error('Failed to load the user list from Lumina.', error);
     users = [];
@@ -213,6 +269,9 @@ function resetFilters() {
   elements.faculty.value = 'all';
   elements.department.value = 'all';
   elements.program.value = 'all';
+  elements.level.value = 'all';
+  elements.sort.value = 'newest';
+  elements.staffOnly.checked = false;
   populateDepartments('all');
   populatePrograms('all');
   refreshCascade();
@@ -246,6 +305,9 @@ elements.department.addEventListener('change', () => {
   render();
 });
 elements.program.addEventListener('change', render);
+elements.level.addEventListener('change', render);
+elements.sort.addEventListener('change', render);
+elements.staffOnly.addEventListener('change', render);
 elements.records.addEventListener('click', handleAction);
 elements.emptyReset.addEventListener('click', resetFilters);
 elements.logout.addEventListener('click', signOut);

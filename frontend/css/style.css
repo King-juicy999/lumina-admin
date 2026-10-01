@@ -1076,3 +1076,45 @@ body[data-page='users'] .field-search {
   background: var(--ink-soft);
   cursor: progress;
 }
+
+.field-check {
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.field-check__box {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.35rem;
+  padding: 0.55rem 0.75rem;
+  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--ink) 26%, transparent);
+  border-radius: 3px;
+  color: var(--ink);
+  font-family: var(--font-record);
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 180ms var(--ease), box-shadow 180ms var(--ease);
+}
+
+.field-check__box:hover {
+  border-color: var(--stamp);
+}
+
+.field-check__box:has(input:focus-visible) {
+  border-color: var(--stamp);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--stamp) 18%, transparent);
+}
+
+.field-check__box:has(input:checked) {
+  border-color: var(--stamp);
+  background: color-mix(in srgb, var(--stamp) 8%, #fff);
+}
+
+.field-check__box input {
+  margin: 0;
+  accent-color: var(--stamp);
+  cursor: pointer;
+}
