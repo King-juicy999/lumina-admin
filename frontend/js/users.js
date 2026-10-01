@@ -2,13 +2,15 @@ const API = 'https://william999.pythonanywhere.com/api';
 const USERS_URL = `${API}/accounts/users/`;
 
 const LEVEL_NAMES = {
-  100: '100 level',
-  200: '200 level',
-  300: '300 level',
-  400: '400 level'
+  100: '100 Level',
+  200: '200 Level',
+  300: '300 Level',
+  400: '400 Level'
 };
 
 let users = [];
+
+const expanded = new Set();
 
 const elements = {
   search: document.getElementById('search'),
@@ -26,7 +28,9 @@ const elements = {
   statTotal: document.getElementById('stat-total'),
   statStudents: document.getElementById('stat-students'),
   statStaff: document.getElementById('stat-staff'),
-  statWeek: document.getElementById('stat-week')
+  statWeek: document.getElementById('stat-week'),
+  staffRoster: document.getElementById('staff-roster'),
+  staffList: document.getElementById('staff-roster-list')
 };
 
 function makeElement(tag, className, text) {
@@ -120,12 +124,25 @@ function joinedThisWeek(user) {
   return Date.now() - new Date(user.date_joined).getTime() < oneWeek;
 }
 
+function renderStaffRoster(staff) {
+  elements.staffList.replaceChildren(
+    ...staff.map((user) => {
+      const item = makeElement('li', 'staff-roster__item');
+      item.appendChild(makeElement('strong', 'staff-roster__name', user.full_name));
+      item.appendChild(makeElement('span', 'staff-roster__ref', user.matric_number));
+      return item;
+    })
+  );
+  elements.staffRoster.hidden = staff.length === 0;
+}
+
 function renderStats() {
-  const staff = users.filter((user) => user.is_staff).length;
+  const staff = users.filter((user) => user.is_staff);
   elements.statTotal.textContent = users.length;
-  elements.statStudents.textContent = users.length - staff;
-  elements.statStaff.textContent = staff;
+  elements.statStudents.textContent = users.length - staff.length;
+  elements.statStaff.textContent = staff.length;
   elements.statWeek.textContent = users.filter(joinedThisWeek).length;
+  renderStaffRoster(staff);
 }
 
 function refreshCascade() {
@@ -192,13 +209,17 @@ function filteredUsers() {
   });
 }
 
-function buildBody(user) {
+function buildBody(user, isExpanded) {
   const body = makeElement('div', 'resource-card__body');
   body.appendChild(makeElement('h3', 'resource-card__title', user.full_name));
   body.appendChild(makeElement('p', 'resource-card__ref', user.matric_number));
 
+  if (!isExpanded) {
+    return body;
+  }
+
   const meta = makeElement('p', 'resource-card__meta');
-  meta.textContent = `${labelFor(FACULTY_NAMES, user.faculty)} / ${labelFor(DEPARTMENT_NAMES, user.department)} / L${user.level} / joined ${formatDate(user.date_joined)}`;
+  meta.textContent = `${labelFor(FACULTY_NAMES, user.faculty)} / ${labelFor(DEPARTMENT_NAMES, user.department)} / ${user.level} Level / joined ${formatDate(user.date_joined)}`;
   body.appendChild(meta);
 
   if (user.is_staff) {
@@ -209,8 +230,19 @@ function buildBody(user) {
   return body;
 }
 
-function buildFoot(user) {
+function buildFoot(user, isExpanded) {
   const foot = makeElement('div', 'resource-card__foot');
+
+  const toggle = makeElement('button', 'record-action record-action--toggle', isExpanded ? 'Hide details' : 'View details');
+  toggle.type = 'button';
+  toggle.dataset.id = String(user.id);
+  toggle.setAttribute('aria-expanded', String(isExpanded));
+  foot.appendChild(toggle);
+
+  if (!isExpanded) {
+    return foot;
+  }
+
   const value = makeElement('span', '');
   value.appendChild(makeElement('strong', 'resource-card__value', String(user.material_count)));
   value.appendChild(document.createTextNode(user.material_count === 1 ? ' material' : ' materials'));
@@ -224,10 +256,11 @@ function buildFoot(user) {
 }
 
 function buildRecord(user) {
+  const isExpanded = expanded.has(user.id);
   const card = makeElement('article', 'resource-card resource-card--person');
   card.appendChild(makeElement('span', 'avatar', initials(user.full_name)));
-  card.appendChild(buildBody(user));
-  card.appendChild(buildFoot(user));
+  card.appendChild(buildBody(user, isExpanded));
+  card.appendChild(buildFoot(user, isExpanded));
   return card;
 }
 
@@ -287,6 +320,17 @@ function resetFilters() {
 function handleAction(event) {
   const button = event.target.closest('.record-action');
   if (!button) {
+    return;
+  }
+  const id = Number(button.dataset.id);
+
+  if (button.classList.contains('record-action--toggle')) {
+    if (expanded.has(id)) {
+      expanded.delete(id);
+    } else {
+      expanded.add(id);
+    }
+    render();
     return;
   }
   console.warn('Remove is not wired to the backend yet.', button.dataset.id);

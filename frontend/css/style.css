@@ -1118,3 +1118,84 @@ body[data-page='users'] .field-search {
   accent-color: var(--stamp);
   cursor: pointer;
 }
+
+.resource-card--person .resource-card__foot {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.record-action--toggle {
+  align-self: flex-start;
+  font-family: var(--font-record);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.record-action--toggle[aria-expanded='true'] {
+  border-color: var(--stamp);
+  color: var(--stamp-deep);
+}
+
+body[data-page='users'] .records-grid {
+  align-items: start;
+}
+
+.resource-card--person {
+  align-self: start;
+}
+
+.staff-roster {
+  border-bottom: 1px solid var(--ledger);
+  background: var(--paper-deep);
+}
+
+.staff-roster__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1.1rem;
+  padding: 0.85rem 0;
+}
+
+.staff-roster__label {
+  margin: 0;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.staff-roster__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.staff-roster__item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.22rem 0.6rem;
+  background: var(--record);
+  border: 1px solid color-mix(in srgb, var(--filing-red) 34%, transparent);
+  border-radius: 999px;
+}
+
+.staff-roster__name {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.staff-roster__ref {
+  font-family: var(--font-record);
+  font-size: 0.66rem;
+  color: var(--filing-red);
+}

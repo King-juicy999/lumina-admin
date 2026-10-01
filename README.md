@@ -296,7 +296,9 @@ as references to the hierarchy. `levelMatches` compares `String(user.level)`
 against the dropdown value, because the API sends the level as a string.
 
 A `LEVEL_NAMES` map at the top of `users.js` holds the four levels the system
-uses, 100, 200, 300 and 400, displayed as "100 level" and so on.
+uses, 100, 200, 300 and 400, displayed as "100 Level" and so on. That wording is
+the main app's, which writes `${level} Level` on its cards and in its dropdowns,
+so the two consoles cannot drift on the same word.
 `populateLevels` fills the control from those keys rather than from the data, so
 100 level is offered even before anybody is in it, and a level nobody is in
 never turns into an empty filter. It runs at load time next to the other
@@ -315,19 +317,46 @@ They count every account, not the filtered set, so changing a filter moves the
 grid and the record count but leaves the figures alone. `joinedThisWeek` is a
 rolling seven days from the browser clock, the same rule the overview uses.
 
+A staff roster sits directly under the stat band, before the control bar, so
+staff can be identified without opening a card. `renderStaffRoster` takes the
+already filtered staff list, writes one `li` per person holding the full name
+and the matric number, and hides the whole section when there is no staff. The
+figure and the roster come from the same filter inside `renderStats`, so the
+count and the names cannot disagree. It summarises every account, not the
+filtered set, so it does not change when a filter does.
+
 The faculty, department and program controls use the same cascade as the
 materials page, built from the same `CASCADE` data, so the two pages cannot
 drift apart. Department appears once a faculty is chosen and program appears once
 a department is chosen, exactly as on materials.
 
-`buildBody` renders the name, the matric number, then
+A user card shows only the name and the matric number until it is opened, then
+the rest. `buildBody` and `buildFoot` both take an `isExpanded` flag and skip the
+second half of the card when it is false, so the collapsed card is the avatar,
+the name, the matric number and a "View details" button. Opened, it adds the
+faculty, department, level and join date line
 `labelFor(FACULTY_NAMES, user.faculty)` and
 `labelFor(DEPARTMENT_NAMES, user.department)` separated by slashes, the level as
-`L<level>`, and the join date formatted as day, short month, year. A staff pill is
-added when `is_staff` is true.
+`<level> Level`, and the join date formatted as day, short month, year, plus a
+staff pill when `is_staff` is true and the material count.
 
-The card foot shows `material_count` with correct singular and plural, and a
-Remove button. Remove is a stub that only logs the id.
+Expanded ids are held in a module level `Set` called `expanded`, and
+`handleAction` adds or removes the clicked id before calling `render`, the same
+shape the materials page uses for revealed uploader ids. State survives a
+re-render, so a filter change does not collapse everything back, but not a page
+reload. The toggle carries `aria-expanded` and its text flips between "View
+details" and "Hide details".
+
+The foot is a column in both states, so the collapsed card stacks the toggle
+under the name rather than stretching it across the row.
+
+`align-items: start` on the users grid stops the rows stretching. Grid items
+stretch to the tallest card in their row by default, so opening one card used to
+inflate every card beside it, which read as the whole row opening. The rule is
+scoped to `body[data-page='users']` and `.resource-card--person`, so the materials
+page keeps the stretch it always had.
+
+Remove is a stub that only logs the id. It only appears on an opened card.
 
 The empty state shows whenever the filtered list is empty, including when the
 fetch itself failed.
@@ -373,7 +402,8 @@ Two breakpoints exist, at 900px and 640px. Focus rings are visible on the form
 controls, and every control has a label. The staff only toggle is a checkbox
 wrapped in a `.field-check__box` pill, restyled through `:has()` so the focus
 ring and the checked state both come from the input rather than from a class
-toggled in JavaScript.
+toggled in JavaScript. The card details toggle uses `aria-expanded` as its state
+hook, styled with an attribute selector rather than a class, for the same reason.
 
 ## Rules for changing this
 
@@ -423,3 +453,8 @@ have. Treat it as a starting point, not as truth.
 - Users page filled out. A sort control with newest first as the default, a
   level filter covering all four levels, a staff only toggle, and a four figure
   stat band above the grid.
+- User cards collapsed to name and matric number, with the faculty, level, join
+  date, staff pill, material count and Remove behind a "View details" toggle,
+  because the full card was too crowded at a glance.
+- User cards stop stretching to the tallest in their row, so opening one no
+  longer inflates the cards beside it.
