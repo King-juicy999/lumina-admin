@@ -61,31 +61,27 @@ Opening `login.html` directly is the same thing.
 
 Port 5500 is not a preference, it is a requirement. The main backend allows
 `http://localhost:5500` and `http://127.0.0.1:5500` as origins and nothing
-else, so any other port gets its response blocked by the browser. See "Running
-it locally" below for the other two conditions that have to hold before the
-pages will show real data.
+else, so any other port gets its response blocked by the browser. There is
+nothing else to arrange before the pages show real data.
 
 There is no build step, so there is nothing to compile and nothing to reinstall.
 A hard refresh picks up every change.
 
 ## The API
 
-Both pages call the main Lumina backend. `API` is hardcoded at the top of
-`js/main.js`, `js/materials.js` and `js/users.js`. There is no environment
-variable and no config file, so pointing the console somewhere else means
-changing those three lines.
+Every page calls the deployed main Lumina backend. `API` is hardcoded at the top
+of `js/main.js`, `js/materials.js`, `js/users.js` and `js/login.js`. There is no
+environment variable and no config file, so pointing the console somewhere else
+means changing those four lines.
 
-It currently reads:
-
-```
-http://localhost:8000/api
-```
-
-For production, change all three back to:
+It reads:
 
 ```
 https://william999.pythonanywhere.com/api
 ```
+
+The console itself is still served from localhost. Only the data comes from
+PythonAnywhere, so there is no local backend to start.
 
 The two materials requests are:
 
@@ -139,11 +135,15 @@ only then does the page go to `index.html`.
 
 Loading `login.html` clears both tokens first, so a stale or half written one
 cannot carry over. The submit button is disabled while either request runs.
-A `TypeError` from `fetch` means the network never answered, which in practice
-means the wrong origin or no backend running, so that case gets its own message
-naming localhost on port 5500. Everything else is 400, 401, 429 and the admin
-refusal. Status codes and response bodies go to `console.error` only and never
-reach the DOM.
+
+`explainLoginFailure` decides what the reader sees, in three bands. A
+`TypeError` from `fetch` means the network never answered, which in practice
+means the wrong origin, so that gets the unreachable message naming localhost on
+port 5500. A refused login, meaning the server answered and said no, gets the
+line `describeLoginFailure` produced for the status. Anything else gets the
+generic line, which is what an unreadable response body lands on, so a JSON
+parser message from the browser never reaches the page. Status codes and
+response bodies go to `console.error` only.
 
 SimpleJWT issues access tokens that last 30 minutes. Nothing in the console
 refreshes them. When one expires the users endpoint answers 401 and the page
@@ -158,34 +158,21 @@ buttons were waiting on this page.
 
 ## Running it locally
 
-Three things must line up, and each has failed on its own before.
+Two things must line up.
 
 **1. Serve the frontend on port 5500.** The main app's `CORS_ALLOWED_ORIGINS`
-lists `http://localhost:5500` and `http://127.0.0.1:5500` only, so any other port
-gets its response blocked by the browser. It matters that 5500 is also the origin
-the main app is served from locally, because that is what makes the next point
-work.
+lists `http://localhost:5500` and `http://127.0.0.1:5500` alongside its own
+domain, so any other local port gets its response blocked by the browser.
 
-**2. Disable the HTTPS redirect locally.** The main app sets
-`SECURE_SSL_REDIRECT = True` for production. Left on, a request to
-`http://localhost:8000` gets a 301 to `https://localhost:8000`, where there is no
-certificate, and the request dies before reaching a view. In
-`lumina/backend/core/settings.py`, add near the top:
-
-```python
-LOCAL = os.environ.get('LOCAL_DEV', '').lower() in ('1', 'true', 'yes')
-```
-
-then change the one line to `SECURE_SSL_REDIRECT = not LOCAL`, and set
-`LOCAL_DEV=1` in the local `.env`. Production is unaffected because the flag is
-absent there. `DJANGO_SECRET_KEY` is already read from the environment, so the
-pattern is already in the file.
-
-**3. Sign in through the console.** Tokens live in `sessionStorage`, which is
+**2. Sign in through the console.** Tokens live in `sessionStorage`, which is
 scoped to one origin and one browser profile. `sessionStorage` is not shared
 between origins, so a token written by the main app on its own domain is
 invisible to the console and cannot be reused. Open `login.html` and sign in
 with a staff account. See "Authentication" above for what that does.
+
+There is no local backend to run. `API` points at the deployed one, over HTTPS,
+so there is no certificate and no `SECURE_SSL_REDIRECT` problem to work around
+any more.
 
 Only `users.html` is guarded. Opening `index.html` or `materials.html` directly
 still loads the shell and then either renders data or shows the empty state.
@@ -405,3 +392,6 @@ have. Treat it as a starting point, not as truth.
   `sessionStorage`. `loadUsers` in `users.js` redirects to `login.html` when
   there is no token and on a 401 or 403, so the empty list was never really
   empty, it was unauthorised.
+- `API` pointed at the deployed backend in all four page scripts, and the login
+  error bands split three ways so an unreadable response body can no longer put
+  a browser parser message on the page.

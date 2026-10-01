@@ -1,4 +1,4 @@
-const API = 'http://localhost:8000/api';
+const API = 'https://william999.pythonanywhere.com/api';
 const MATERIALS_URL = `${API}/materials/`;
 
 const elements = {

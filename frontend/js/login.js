@@ -1,4 +1,4 @@
-const API = 'http://localhost:8000/api';
+const API = 'https://william999.pythonanywhere.com/api';
 const LOGIN_URL = `${API}/accounts/login/`;
 const USERS_URL = `${API}/accounts/users/`;
 
@@ -28,7 +28,21 @@ function setBusy(busy) {
 }
 
 function unreachableMessage() {
-  return 'The server could not be reached. Open this console from localhost on port 5500 and check that the backend is running.';
+  return 'The server could not be reached. Open this console from localhost on port 5500 and check your connection.';
+}
+
+function genericMessage() {
+  return 'Sign in is not working right now. Try again in a moment.';
+}
+
+function explainLoginFailure(error) {
+  if (error instanceof TypeError) {
+    return unreachableMessage();
+  }
+  if (error.refused) {
+    return error.message;
+  }
+  return genericMessage();
 }
 
 function describeLoginFailure(status) {
@@ -50,7 +64,9 @@ async function requestToken(matricNumber, password) {
 
   if (!response.ok) {
     console.error('Lumina refused the sign in request.', response.status);
-    throw new Error(describeLoginFailure(response.status));
+    const failure = new Error(describeLoginFailure(response.status));
+    failure.refused = true;
+    throw failure;
   }
   return response.json();
 }
@@ -65,7 +81,7 @@ async function confirmAdminAccess(access) {
   }
   if (!response.ok) {
     console.error('The admin users endpoint rejected this token.', response.status);
-    return 'Sign in is not working right now. Try again in a moment.';
+    return genericMessage();
   }
   return null;
 }
@@ -89,7 +105,7 @@ async function handleSubmit(event) {
     data = await requestToken(matricNumber, password);
   } catch (error) {
     console.error('The sign in request did not complete.', error);
-    showError(error instanceof TypeError ? unreachableMessage() : error.message);
+    showError(explainLoginFailure(error));
     setBusy(false);
     return;
   }
