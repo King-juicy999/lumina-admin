@@ -6,6 +6,8 @@ let users = [];
 const elements = {
   search: document.getElementById('search'),
   faculty: document.getElementById('faculty'),
+  department: document.getElementById('department'),
+  program: document.getElementById('program'),
   records: document.getElementById('records'),
   count: document.getElementById('results-count'),
   empty: document.getElementById('empty-state'),
@@ -56,8 +58,49 @@ function populateFaculties() {
   populateSelect(elements.faculty, Object.keys(CASCADE), 'All faculties', FACULTY_NAMES);
 }
 
+function populateDepartments(faculty) {
+  const departments = faculty === 'all' ? {} : CASCADE[faculty].departments;
+  populateSelect(elements.department, Object.keys(departments), 'All departments', DEPARTMENT_NAMES);
+}
+
+function programsFor(department) {
+  for (const data of Object.values(CASCADE)) {
+    if (data.departments[department]) {
+      return data.departments[department];
+    }
+  }
+  return [];
+}
+
+function populatePrograms(department) {
+  populateSelect(elements.program, programsFor(department), 'All programs', PROGRAM_NAMES);
+}
+
+function refreshCascade() {
+  const faculty = elements.faculty.value;
+  const department = elements.department.value;
+  const departmentField = elements.department.closest('.field');
+  const programField = elements.program.closest('.field');
+
+  departmentField.hidden = faculty === 'all';
+  programField.hidden = department === 'all';
+  populatePrograms(department);
+}
+
+function fieldMatches(user, value, slug, names) {
+  return user[slug] === value || user[slug] === names[value];
+}
+
 function facultyMatches(user, faculty) {
-  return user.faculty === faculty || user.faculty === FACULTY_NAMES[faculty];
+  return fieldMatches(user, faculty, 'faculty', FACULTY_NAMES);
+}
+
+function departmentMatches(user, department) {
+  return fieldMatches(user, department, 'department', DEPARTMENT_NAMES);
+}
+
+function programMatches(user, program) {
+  return fieldMatches(user, program, 'program', PROGRAM_NAMES);
 }
 
 function matchesSearch(user, term) {
@@ -72,11 +115,19 @@ function matchesSearch(user, term) {
 function filteredUsers() {
   const term = elements.search.value.trim().toLowerCase();
   const faculty = elements.faculty.value;
+  const department = elements.department.value;
+  const program = elements.program.value;
   return users.filter((user) => {
     if (!matchesSearch(user, term)) {
       return false;
     }
-    return faculty === 'all' || facultyMatches(user, faculty);
+    if (faculty !== 'all' && !facultyMatches(user, faculty)) {
+      return false;
+    }
+    if (department !== 'all' && !departmentMatches(user, department)) {
+      return false;
+    }
+    return program === 'all' || programMatches(user, program);
   });
 }
 
@@ -149,6 +200,11 @@ async function loadUsers() {
 function resetFilters() {
   elements.search.value = '';
   elements.faculty.value = 'all';
+  elements.department.value = 'all';
+  elements.program.value = 'all';
+  populateDepartments('all');
+  populatePrograms('all');
+  refreshCascade();
   render();
 }
 
@@ -167,10 +223,23 @@ function signOut() {
 }
 
 elements.search.addEventListener('input', render);
-elements.faculty.addEventListener('change', render);
+elements.faculty.addEventListener('change', () => {
+  populateDepartments(elements.faculty.value);
+  populatePrograms('all');
+  refreshCascade();
+  render();
+});
+elements.department.addEventListener('change', () => {
+  populatePrograms(elements.department.value);
+  refreshCascade();
+  render();
+});
+elements.program.addEventListener('change', render);
 elements.records.addEventListener('click', handleAction);
 elements.emptyReset.addEventListener('click', resetFilters);
 elements.logout.addEventListener('click', signOut);
 
 populateFaculties();
+populateDepartments('all');
+refreshCascade();
 loadUsers();

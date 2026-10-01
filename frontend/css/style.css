@@ -512,6 +512,10 @@ body {
   flex: 1 1 12rem;
 }
 
+body[data-page='users'] .field-search {
+  flex: 0 1 18rem;
+}
+
 .field-menu {
   flex: 0 1 9.5rem;
   min-width: 0;

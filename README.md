@@ -187,13 +187,19 @@ A card grid of every account that has signed up.
 
 `loadUsers` fetches `/accounts/users/` once on load and stores the array in a
 module level `users`. Filtering after that is entirely client side, so typing in
-search or changing faculty re-renders instantly with no further network call.
+search or changing any filter re-renders instantly with no further network call.
 
-`filteredUsers` applies the search term and the faculty filter. `matchesSearch`
-matches on `full_name` or `matric_number`, case insensitively, and tolerates
-either being null. `facultyMatches` accepts a user whose `faculty` is either the
-slug or the full name, because the `User` model stores faculty as free text
-rather than a reference to the hierarchy.
+`filteredUsers` applies the search term and the three hierarchy filters.
+`matchesSearch` matches on `full_name` or `matric_number`, case insensitively,
+and tolerates either being null. `facultyMatches`, `departmentMatches` and
+`programMatches` all go through one `fieldMatches` helper that accepts a user
+whose value is either the slug or the full name, because the `User` model stores
+those three as free text rather than as references to the hierarchy.
+
+The faculty, department and program controls use the same cascade as the
+materials page, built from the same `CASCADE` data, so the two pages cannot
+drift apart. Department appears once a faculty is chosen and program appears once
+a department is chosen, exactly as on materials.
 
 `buildBody` renders the name, the matric number, then
 `labelFor(FACULTY_NAMES, user.faculty)` and
@@ -206,6 +212,11 @@ Remove button. Remove is a stub that only logs the id.
 
 The empty state shows whenever the filtered list is empty, including when the
 fetch itself failed.
+
+The search field is capped at 18rem on this page only, through a
+`body[data-page='users']` rule, because with only a few controls in the bar the
+flex grow on `.field-search` would otherwise stretch it across the whole row. The
+materials page keeps the uncapped version.
 
 ## errors
 
@@ -274,3 +285,5 @@ have. Treat it as a starting point, not as truth.
   the unclickable department and program controls fixed.
 - Real users loaded from `GET /api/accounts/users/`, mock records deleted, and the
   hierarchy data moved into `js/hierarchy.js` and shared by both pages.
+- Department and program filters added to the users page, matching the materials
+  cascade, and the search field capped so it stops spanning the control bar.
