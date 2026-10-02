@@ -688,6 +688,129 @@ body[data-page='users'] .field-search {
   color: var(--filing-red);
 }
 
+.pill--super {
+  border-color: var(--brass);
+  background: color-mix(in srgb, var(--brass) 14%, var(--record));
+  color: var(--brass);
+}
+
+.pill--suspended {
+  border-color: color-mix(in srgb, var(--filing-red) 45%, var(--ledger));
+  background: var(--accent-soft);
+  color: var(--filing-red);
+}
+
+.record-action--ban {
+  border-color: var(--filing-red);
+  color: var(--filing-red);
+}
+
+.record-action--ban:hover {
+  background: var(--filing-red);
+  color: #fffef8;
+}
+
+.action-modal {
+  width: min(28rem, calc(100vw - 2rem));
+  padding: 0;
+  background: var(--record);
+  border: var(--edge-strong);
+  border-radius: 6px;
+  box-shadow: var(--shadow-lift);
+  color: var(--ink);
+}
+
+.action-modal::backdrop {
+  background: rgba(32, 48, 63, 0.45);
+}
+
+.action-modal__head {
+  padding: 1.1rem 1.3rem 0.9rem;
+  border-bottom: var(--rule-double);
+}
+
+.action-modal__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.25rem;
+}
+
+.action-modal__intro {
+  margin: 0.4rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+.action-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem 1.3rem 0.4rem;
+}
+
+.action-modal__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+
+.action-modal__note {
+  resize: vertical;
+}
+
+.action-modal__error {
+  margin: 0.5rem 1.3rem 0;
+  min-height: 1.2rem;
+  color: var(--filing-red);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.action-modal__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0.9rem 1.3rem 1.2rem;
+}
+
+.action-modal__foot .plate-btn:disabled {
+  background: var(--ink-soft);
+  cursor: progress;
+}
+
+.notice {
+  position: fixed;
+  right: 1.2rem;
+  bottom: 1.2rem;
+  max-width: 24rem;
+  margin: 0;
+  padding: 0.7rem 1rem;
+  background: var(--record);
+  border: 1px solid var(--ledger);
+  border-radius: 4px;
+  box-shadow: var(--shadow-lift);
+  font-family: var(--font-record);
+  font-size: 0.74rem;
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms var(--ease);
+}
+
+.notice--visible {
+  opacity: 1;
+}
+
+.notice--good {
+  border-left: 4px solid var(--stamp);
+}
+
+.notice--bad {
+  border-left: 4px solid var(--filing-red);
+  color: var(--filing-red);
+}
+
 .resource-card__body {
   flex: 1;
   padding: 1rem 1.05rem 0.95rem;

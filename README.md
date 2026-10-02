@@ -37,6 +37,8 @@ frontend/
     login.js             sign in page logic
     main.js              overview page logic
     materials.js         materials page logic
+    modal.js             the shared action dialog, notice and reason list
+    session.js           the signed in role and the authenticated fetch
     users.js             users page logic
 ```
 
@@ -120,7 +122,7 @@ number itself, so the console sends what was typed. It answers 200 with `user`,
 after five anonymous attempts in a minute. The `user` object it returns has no
 `is_staff` key, so a successful login is not proof of staff rights.
 
-`login.html` and `js/login.js` do this in two calls:
+`login.html` and `js/login.js` do this in three calls:
 
 1. Post `matric_number` and `password` as JSON to `/accounts/login/`. Take the
    `access` and `refresh` values out of the response.
@@ -128,13 +130,16 @@ after five anonymous attempts in a minute. The `user` object it returns has no
    is where the staff check actually happens. A 403 means a signed in account
    with no admin rights, and nothing is stored. Any other non-200 is treated as
    a temporary failure.
+3. Request `/accounts/admin/me/` with the same token to read the role. See the
+   roles section below.
 
 Only when the second call answers 200 are the tokens written to
 `sessionStorage` under `lumina_access_token` and `lumina_refresh_token`, and
 only then does the page go to `index.html`.
 
-Loading `login.html` clears both tokens first, so a stale or half written one
-cannot carry over. The submit button is disabled while either request runs.
+Loading `login.html` clears both tokens and the stored role first, so a stale
+or half written one cannot carry over. The submit button is disabled while
+either request runs.
 
 `explainLoginFailure` decides what the reader sees, in three bands. A
 `TypeError` from `fetch` means the network never answered, which in practice
@@ -356,7 +361,8 @@ inflate every card beside it, which read as the whole row opening. The rule is
 scoped to `body[data-page='users']` and `.resource-card--person`, so the materials
 page keeps the stretch it always had.
 
-Remove is a stub that only logs the id. It only appears on an opened card.
+Remove is gone. The action buttons that replaced it, the pills and the request
+handling are described under roles below.
 
 The empty state shows whenever the filtered list is empty, including when the
 fetch itself failed.
@@ -365,6 +371,64 @@ The search field is capped at 18rem on this page only, through a
 `body[data-page='users']` rule, because with only a few controls in the bar the
 flex grow on `.field-search` would otherwise stretch it across the whole row. The
 materials page keeps the uncapped version.
+
+## roles
+
+The main app now has three roles: super admin (`is_superuser`), admin
+(`is_staff` and not superuser) and student. The users list returns `role`,
+`status` and `suspended_until` on every record and never returns a banned user,
+so a card in this console is always an account that still exists.
+
+`login.js` reads the role once at sign in. After the staff check passes and
+before the redirect, `resolveRole` requests `GET /accounts/admin/me/` with the
+new access token and writes the answer to `sessionStorage` under
+`lumina_admin_role`. Any failure on that call stores `admin`, the least
+privileged value, so a broken profile request can never widen what the console
+shows. `clearTokens` removes that key along with the two tokens.
+
+`js/session.js` is the one place the session lives. `getRole` and `isSuperAdmin`
+read it, `authorisedFetch` attaches the `Bearer` header, and on a 401 it clears
+the tokens and the role and sends the browser to `/login.html`. A 403 comes back
+to the caller untouched, because on these endpoints it means the action is not
+allowed, not that the session is dead. On load, `revealSuperAdminControls`
+unhides every element carrying `data-role="super"` when the stored role is
+`super_admin`. The role decides what is shown and nothing else: the server
+enforces every rule, and the console hiding a button is not the thing stopping
+it.
+
+`js/modal.js` holds the shared action dialog. `openActionModal` builds a
+`<dialog>` from a config and returns a promise for the entered values, or `null`
+for a cancel. The config can ask for a title and intro, a duration of a whole
+number plus a unit of minutes, hours or days which is converted to minutes and
+capped at 30 days, a reason dropdown filled from `GET
+/accounts/moderation/reasons/`, a note, and the confirm label. A reason is
+required when a reason list is shown, and the note must be at least 10
+characters when the chosen code is `other`. The dialog closes on Escape, on the
+backdrop and on Cancel, hands focus back to the button that opened it, and
+disables its confirm button while the request runs. It also exports `showNotice`,
+a live region for success and failure that fades after four seconds, and
+`fetchReasons`, which asks for the reason list once per page load and caches it.
+
+What each role sees on the users page, from `buildFoot`:
+
+| Viewer | Suspended target | Action buttons |
+| --- | --- | --- |
+| any role | a super admin | none, the foot stops after the material count |
+| admin viewer | another admin | none |
+| super admin | another admin | Suspend, Ban |
+| any role | a student | Suspend, then Ban for a super admin or Request ban otherwise |
+
+Suspending posts minutes, a reason code and a note, and the card updates in
+memory so the Suspended pill and the Lift suspension button appear without a
+reload. Lifting posts an empty body and a short confirm. Ban requests post the
+reason and note and leave the card alone. A ban by the super admin removes the
+card from the list.
+
+Every failure goes through `runAction`, which is the only place a moderation
+request is made. It maps the status to a plain sentence, 400 to check the
+details, 403 to not being allowed, 404 to the user being gone and 409 to a ban
+request already waiting, and it never puts a status code, a response body or any
+raw text on the page.
 
 ## errors
 
@@ -458,3 +522,8 @@ have. Treat it as a starting point, not as truth.
   because the full card was too crowded at a glance.
 - User cards stop stretching to the tallest in their row, so opening one no
   longer inflates the cards beside it.
+- Role aware moderation on the users page. `login.js` reads the role from
+  `/accounts/admin/me/` at sign in, `js/session.js` owns the session and the
+  authenticated fetch, and `js/modal.js` holds the shared action dialog, the
+  notice and the reason list. The Remove stub became Suspend, Lift suspension,
+  Ban and Request ban, with role and status pills on the card.

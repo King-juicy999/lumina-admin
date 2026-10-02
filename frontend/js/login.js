@@ -4,6 +4,8 @@ const USERS_URL = `${API}/accounts/users/`;
 
 const ACCESS_TOKEN_KEY = 'lumina_access_token';
 const REFRESH_TOKEN_KEY = 'lumina_refresh_token';
+const ROLE_KEY = 'lumina_admin_role';
+const ME_URL = `${API}/accounts/admin/me/`;
 
 const elements = {
   form: document.getElementById('login-form'),
@@ -16,6 +18,7 @@ const elements = {
 function clearTokens() {
   sessionStorage.removeItem(ACCESS_TOKEN_KEY);
   sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+  sessionStorage.removeItem(ROLE_KEY);
 }
 
 function showError(message) {
@@ -86,6 +89,23 @@ async function confirmAdminAccess(access) {
   return null;
 }
 
+async function resolveRole(access) {
+  try {
+    const response = await fetch(ME_URL, {
+      headers: { Accept: 'application/json', Authorization: `Bearer ${access}` }
+    });
+    if (!response.ok) {
+      console.error('The admin profile request answered', response.status);
+      return 'admin';
+    }
+    const profile = await response.json();
+    return profile.role === 'super_admin' ? 'super_admin' : 'admin';
+  } catch (error) {
+    console.error('The admin profile request did not complete.', error);
+    return 'admin';
+  }
+}
+
 async function handleSubmit(event) {
   event.preventDefault();
   showError('');
@@ -128,6 +148,7 @@ async function handleSubmit(event) {
 
   sessionStorage.setItem(ACCESS_TOKEN_KEY, data.access);
   sessionStorage.setItem(REFRESH_TOKEN_KEY, data.refresh);
+  sessionStorage.setItem(ROLE_KEY, await resolveRole(data.access));
   window.location.href = 'index.html';
 }
 

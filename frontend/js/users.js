@@ -1,5 +1,6 @@
 const API = 'https://william999.pythonanywhere.com/api';
 const USERS_URL = `${API}/accounts/users/`;
+const ACTION_BASE = `${API}/accounts/users/`;
 
 const LEVEL_NAMES = {
   100: '100 Level',
@@ -49,6 +50,16 @@ function formatDate(value) {
     day: 'numeric',
     month: 'short',
     year: 'numeric'
+  });
+}
+
+function formatStamp(value) {
+  return new Date(value).toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   });
 }
 
@@ -222,10 +233,18 @@ function buildBody(user, isExpanded) {
   meta.textContent = `${labelFor(FACULTY_NAMES, user.faculty)} / ${labelFor(DEPARTMENT_NAMES, user.department)} / ${user.level} Level / joined ${formatDate(user.date_joined)}`;
   body.appendChild(meta);
 
-  if (user.is_staff) {
-    const wrap = makeElement('p', 'resource-card__meta');
-    wrap.appendChild(makeElement('span', 'pill pill--staff', 'Staff'));
-    body.appendChild(wrap);
+  const pills = makeElement('p', 'resource-card__pill-wrap');
+  if (user.role === 'super_admin') {
+    pills.appendChild(makeElement('span', 'pill pill--super', 'Super admin'));
+  } else if (user.role === 'admin') {
+    pills.appendChild(makeElement('span', 'pill pill--staff', 'Admin'));
+  }
+  if (user.status === 'suspended') {
+    const until = user.suspended_until ? ` until ${formatStamp(user.suspended_until)}` : '';
+    pills.appendChild(makeElement('span', 'pill pill--suspended', `Suspended${until}`));
+  }
+  if (pills.childElementCount) {
+    body.appendChild(pills);
   }
   return body;
 }
@@ -248,11 +267,25 @@ function buildFoot(user, isExpanded) {
   value.appendChild(document.createTextNode(user.material_count === 1 ? ' material' : ' materials'));
   foot.appendChild(value);
 
-  const button = makeElement('button', 'record-action record-action--danger', 'Remove');
-  button.type = 'button';
-  button.dataset.id = String(user.id);
-  foot.appendChild(button);
+  if (user.role === 'super_admin') {
+    return foot;
+  }
+  if (user.role === 'admin' && !isSuperAdmin()) {
+    return foot;
+  }
+
+  const suspended = user.status === 'suspended';
+  foot.appendChild(actionButton(suspended ? 'Lift suspension' : 'Suspend', suspended ? 'unsuspend' : 'suspend', user));
+  foot.appendChild(actionButton(isSuperAdmin() ? 'Ban' : 'Request ban', isSuperAdmin() ? 'ban' : 'ban-requests', user));
   return foot;
+}
+
+function actionButton(label, action, user) {
+  const button = makeElement('button', `record-action record-action--${action}`, label);
+  button.type = 'button';
+  button.dataset.action = action;
+  button.dataset.id = String(user.id);
+  return button;
 }
 
 function buildRecord(user) {
@@ -333,7 +366,128 @@ function handleAction(event) {
     render();
     return;
   }
-  console.warn('Remove is not wired to the backend yet.', button.dataset.id);
+
+  const user = users.find((entry) => entry.id === id);
+  if (!user) {
+    return;
+  }
+
+  if (button.dataset.action === 'unsuspend') {
+    liftSuspension(user);
+    return;
+  }
+  if (button.dataset.action === 'suspend') {
+    suspendUser(user);
+    return;
+  }
+  banUser(user, button.dataset.action);
+}
+
+async function runAction(url, body, messages) {
+  try {
+    const response = await authorisedFetch(url, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+    if (!response.ok) {
+      console.error('The moderation request was refused.', response.status, await response.text());
+      showNotice(messages[response.status] || messages.other, 'bad');
+      return false;
+    }
+    showNotice(messages.done, 'good');
+  } catch (error) {
+    console.error('The moderation request did not complete.', error);
+    showNotice(messages.other, 'bad');
+    return false;
+  }
+  return true;
+}
+
+const ACTION_FAILURES = {
+  400: 'Check the details and try again.',
+  403: 'You are not allowed to do that.',
+  404: 'That user no longer exists.',
+  409: 'A ban request for that user is already waiting.',
+  other: 'That action did not go through.'
+};
+
+async function suspendUser(user) {
+  const reasons = await loadReasonList('suspend');
+  const entered = await openActionModal({
+    title: `Suspend ${user.full_name}`,
+    intro: 'They will not be able to sign in until the suspension runs out.',
+    duration: true,
+    reasons,
+    confirmLabel: 'Suspend',
+    onConfirm: (values) => runAction(`${ACTION_BASE}${user.id}/suspend/`, values, {
+      done: `${user.full_name} is suspended.`,
+      ...ACTION_FAILURES
+    })
+  });
+  if (entered) {
+    updateUser(user.id, { status: 'suspended', suspended_until: stampFrom(entered.minutes) });
+  }
+}
+
+async function liftSuspension(user) {
+  const entered = await openActionModal({
+    title: `Lift the suspension on ${user.full_name}`,
+    intro: 'They will be able to sign in again straight away.',
+    confirmLabel: 'Lift suspension',
+    onConfirm: () => runAction(`${ACTION_BASE}${user.id}/unsuspend/`, {}, {
+      done: `${user.full_name} can sign in again.`,
+      ...ACTION_FAILURES
+    })
+  });
+  if (entered) {
+    updateUser(user.id, { status: 'active', suspended_until: null });
+  }
+}
+
+async function banUser(user, action) {
+  const asRequest = action === 'ban-requests';
+  const reasons = await loadReasonList('ban');
+  const entered = await openActionModal({
+    title: asRequest ? `Request a ban on ${user.full_name}` : `Ban ${user.full_name}`,
+    intro: asRequest
+      ? 'The super admin decides whether this ban goes ahead.'
+      : 'The account will show as deleted to the user. The record is kept.',
+    reasons,
+    confirmLabel: asRequest ? 'Send request' : 'Ban',
+    onConfirm: (values) => runAction(`${ACTION_BASE}${user.id}/${action}/`, values, {
+      done: asRequest ? 'Ban request sent to the super admin.' : `${user.full_name} is banned.`,
+      ...ACTION_FAILURES
+    })
+  });
+  if (entered && !asRequest) {
+    removeUser(user.id);
+  }
+}
+
+function loadReasonList(kind) {
+  return fetchReasons(kind).catch((error) => {
+    console.error('The moderation reasons could not be loaded.', error);
+    return [];
+  });
+}
+
+function stampFrom(minutes) {
+  return new Date(Date.now() + minutes * 60 * 1000).toISOString();
+}
+
+function updateUser(id, changes) {
+  const user = users.find((entry) => entry.id === id);
+  if (user) {
+    Object.assign(user, changes);
+    render();
+  }
+}
+
+function removeUser(id) {
+  users = users.filter((entry) => entry.id !== id);
+  expanded.delete(id);
+  renderStats();
+  render();
 }
 
 function signOut() {
