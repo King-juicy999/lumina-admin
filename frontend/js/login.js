@@ -11,6 +11,7 @@ const elements = {
   form: document.getElementById('login-form'),
   matric: document.getElementById('matric-number'),
   password: document.getElementById('password'),
+  reveal: document.getElementById('password-toggle'),
   error: document.getElementById('login-error'),
   submit: document.getElementById('login-submit')
 };
@@ -106,6 +107,13 @@ async function resolveRole(access) {
   }
 }
 
+function togglePasswordVisibility() {
+  const shown = elements.password.type === 'text';
+  elements.password.type = shown ? 'password' : 'text';
+  elements.reveal.setAttribute('aria-label', shown ? 'Show password' : 'Hide password');
+  elements.password.focus();
+}
+
 async function handleSubmit(event) {
   event.preventDefault();
   showError('');
@@ -153,4 +161,5 @@ async function handleSubmit(event) {
 }
 
 elements.form.addEventListener('submit', handleSubmit);
+elements.reveal.addEventListener('click', togglePasswordVisibility);
 clearTokens();

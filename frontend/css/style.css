@@ -19,6 +19,7 @@
   --font-heading: var(--font-display);
   --font-mono: var(--font-record);
   --ease: cubic-bezier(0.22, 0.9, 0.3, 1);
+  --toggle-size: 2.9rem;
   --rule-double: 3px double var(--filing-red);
   --edge: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
   --edge-strong: 1px solid color-mix(in srgb, var(--ink) 24%, transparent);
@@ -40,6 +41,11 @@
 html {
   font-size: 100%;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  touch-action: manipulation;
 }
 
 body {
@@ -62,11 +68,6 @@ body {
     opacity: 1;
     transform: translateY(0) rotate(0);
   }
-}
-
-@keyframes live-pulse {
-  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--filing-red) 60%, transparent); }
-  70%, 100% { box-shadow: 0 0 0 0.55rem transparent; }
 }
 
 .container {
@@ -154,8 +155,16 @@ body {
   transition: background 180ms var(--ease);
 }
 
-.plate-btn:hover {
-  background: var(--stamp-deep);
+@media (hover: hover) and (pointer: fine) {
+  .plate-btn:hover {
+    background: var(--stamp-deep);
+  }
+}
+
+.plate-btn:active,
+.record-action:active {
+  transform: scale(0.97);
+  transition-duration: 120ms;
 }
 
 .plate-btn--ghost {
@@ -335,7 +344,6 @@ body {
   height: 0.55rem;
   border-radius: 50%;
   background: var(--filing-red);
-  animation: live-pulse 1.6s ease-out infinite;
 }
 
 .freshly__activity-line {
@@ -612,13 +620,14 @@ body[data-page='users'] .field-search {
   border: var(--edge);
   border-radius: 5px;
   box-shadow: var(--shadow-card);
-  animation: card-files-in 560ms var(--ease) both;
   transition: transform 220ms var(--ease), box-shadow 220ms var(--ease);
 }
 
-.resource-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lift);
+@media (hover: hover) and (pointer: fine) {
+  .resource-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lift);
+  }
 }
 
 .resource-card--hidden {
@@ -705,8 +714,16 @@ body[data-page='users'] .field-search {
   color: var(--filing-red);
 }
 
-.record-action--ban:hover {
-  background: var(--filing-red);
+@media (hover: hover) and (pointer: fine) {
+  .record-action--ban:hover {
+    background: var(--filing-red);
+    color: #fffef8;
+  }
+}
+
+.record-action--ban:active {
+  background: var(--stamp-deep);
+  border-color: var(--stamp-deep);
   color: #fffef8;
 }
 
@@ -782,7 +799,7 @@ body[data-page='users'] .field-search {
 .notice {
   position: fixed;
   right: 1.2rem;
-  bottom: 1.2rem;
+  bottom: calc(1.2rem + env(safe-area-inset-bottom, 0px));
   max-width: 24rem;
   margin: 0;
   padding: 0.7rem 1rem;
@@ -912,20 +929,19 @@ body[data-page='users'] .field-search {
   transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease);
 }
 
-.record-action:hover {
+@media (hover: hover) and (pointer: fine) {
+  .record-action:hover {
+    border-color: var(--stamp);
+    color: var(--stamp-deep);
+  }
+}
+
+.record-action--suspend:active,
+.record-action--unsuspend:active,
+.record-action--toggle:active {
   border-color: var(--stamp);
+  background: var(--accent-soft);
   color: var(--stamp-deep);
-}
-
-.record-action--danger {
-  border-color: transparent;
-  color: var(--ink-soft);
-}
-
-.record-action--danger:hover {
-  border-color: var(--filing-red);
-  background: var(--filing-red);
-  color: #fffef8;
 }
 
 .avatar {
@@ -1182,6 +1198,59 @@ body[data-page='users'] .field-search {
   gap: 0.3rem;
 }
 
+.password-field {
+  position: relative;
+  display: flex;
+}
+
+.password-field__input {
+  padding-right: var(--toggle-size);
+}
+
+.password-field__toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transform: translateY(-50%);
+  user-select: none;
+  transition: color 180ms var(--ease), background-color 180ms var(--ease);
+}
+
+.password-field__toggle:active {
+  color: var(--stamp);
+  background: color-mix(in srgb, var(--stamp) 8%, var(--record));
+}
+
+.password-field__toggle:focus-visible {
+  outline: none;
+  color: var(--stamp);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--stamp) 18%, transparent);
+}
+
+.password-field__slash {
+  opacity: 1;
+  transition: opacity 140ms var(--ease);
+}
+
+.password-field:has(input[type='text']) .password-field__toggle {
+  color: var(--stamp);
+}
+
+.password-field:has(input[type='text']) .password-field__slash {
+  opacity: 0;
+}
+
 .login-error {
   margin: 0;
   min-height: 1.25rem;
@@ -1206,6 +1275,7 @@ body[data-page='users'] .field-search {
 }
 
 .field-check__box {
+  touch-action: manipulation;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -1321,4 +1391,39 @@ body[data-page='users'] .records-grid {
   font-family: var(--font-record);
   font-size: 0.66rem;
   color: var(--filing-red);
+}
+
+@media (pointer: coarse) {
+  .field-input,
+  .field-select {
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+    font-size: 1rem;
+  }
+
+  .password-field__toggle {
+    top: 0;
+    right: 0;
+    width: var(--toggle-size);
+    height: 100%;
+    transform: none;
+  }
+
+  .record-action {
+    min-height: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .master-card,
+  .activity-row,
+  .login-card {
+    animation: none;
+  }
+
+  .plate-btn:active,
+  .record-action:active {
+    transform: none;
+    transition-duration: 120ms;
+  }
 }
