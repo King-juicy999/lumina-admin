@@ -411,7 +411,7 @@ a live region for success and failure that fades after four seconds, and
 
 What each role sees on the users page, from `buildFoot`:
 
-| Viewer | Suspended target | Action buttons |
+| Viewer | Target | Action buttons |
 | --- | --- | --- |
 | any role | a super admin | none, the foot stops after the material count |
 | admin viewer | another admin | none |

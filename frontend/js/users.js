@@ -1,6 +1,5 @@
 const API = 'https://william999.pythonanywhere.com/api';
 const USERS_URL = `${API}/accounts/users/`;
-const ACTION_BASE = `${API}/accounts/users/`;
 
 const LEVEL_NAMES = {
   100: '100 Level',
@@ -383,6 +382,13 @@ function handleAction(event) {
   banUser(user, button.dataset.action);
 }
 
+async function readActionResult(response) {
+  if (response.status === 204) {
+    return true;
+  }
+  return response.json();
+}
+
 async function runAction(url, body, messages) {
   try {
     const response = await authorisedFetch(url, {
@@ -395,12 +401,12 @@ async function runAction(url, body, messages) {
       return false;
     }
     showNotice(messages.done, 'good');
+    return readActionResult(response);
   } catch (error) {
     console.error('The moderation request did not complete.', error);
     showNotice(messages.other, 'bad');
     return false;
   }
-  return true;
 }
 
 const ACTION_FAILURES = {
@@ -419,13 +425,13 @@ async function suspendUser(user) {
     duration: true,
     reasons,
     confirmLabel: 'Suspend',
-    onConfirm: (values) => runAction(`${ACTION_BASE}${user.id}/suspend/`, values, {
+    onConfirm: (values) => runAction(`${USERS_URL}${user.id}/suspend/`, values, {
       done: `${user.full_name} is suspended.`,
       ...ACTION_FAILURES
     })
   });
   if (entered) {
-    updateUser(user.id, { status: 'suspended', suspended_until: stampFrom(entered.minutes) });
+    updateUser(user.id, { status: 'suspended', suspended_until: entered.suspended_until || null });
   }
 }
 
@@ -434,7 +440,8 @@ async function liftSuspension(user) {
     title: `Lift the suspension on ${user.full_name}`,
     intro: 'They will be able to sign in again straight away.',
     confirmLabel: 'Lift suspension',
-    onConfirm: () => runAction(`${ACTION_BASE}${user.id}/unsuspend/`, {}, {
+    hideNote: true,
+    onConfirm: () => runAction(`${USERS_URL}${user.id}/unsuspend/`, {}, {
       done: `${user.full_name} can sign in again.`,
       ...ACTION_FAILURES
     })
@@ -454,7 +461,7 @@ async function banUser(user, action) {
       : 'The account will show as deleted to the user. The record is kept.',
     reasons,
     confirmLabel: asRequest ? 'Send request' : 'Ban',
-    onConfirm: (values) => runAction(`${ACTION_BASE}${user.id}/${action}/`, values, {
+    onConfirm: (values) => runAction(`${USERS_URL}${user.id}/${action}/`, values, {
       done: asRequest ? 'Ban request sent to the super admin.' : `${user.full_name} is banned.`,
       ...ACTION_FAILURES
     })
@@ -464,23 +471,19 @@ async function banUser(user, action) {
   }
 }
 
-function loadReasonList(kind) {
-  return fetchReasons(kind).catch((error) => {
-    console.error('The moderation reasons could not be loaded.', error);
-    return [];
-  });
-}
-
-function stampFrom(minutes) {
-  return new Date(Date.now() + minutes * 60 * 1000).toISOString();
-}
-
 function updateUser(id, changes) {
   const user = users.find((entry) => entry.id === id);
   if (user) {
     Object.assign(user, changes);
     render();
   }
+}
+
+function loadReasonList(kind) {
+  return fetchReasons(kind).catch((error) => {
+    console.error('The moderation reasons could not be loaded.', error);
+    return [];
+  });
 }
 
 function removeUser(id) {

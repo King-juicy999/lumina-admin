@@ -1,5 +1,3 @@
-const MODERATION_URL = 'https://william999.pythonanywhere.com/api/accounts';
-
 const DURATION_UNITS = [
   { value: 'minutes', label: 'Minutes', factor: 1 },
   { value: 'hours', label: 'Hours', factor: 60 },
@@ -23,7 +21,7 @@ function makeNode(tag, className, text) {
   return node;
 }
 
-function labelFor(code) {
+function humaniseCode(code) {
   return code.replace(/_/g, ' ');
 }
 
@@ -75,7 +73,7 @@ function buildReasons(list) {
   select.appendChild(first);
 
   for (const entry of list) {
-    const option = makeNode('option', '', entry.label || labelFor(entry.code));
+    const option = makeNode('option', '', entry.label || humaniseCode(entry.code));
     option.value = entry.code;
     select.appendChild(option);
   }
@@ -83,7 +81,7 @@ function buildReasons(list) {
 }
 
 function readValues(parts) {
-  const values = { note: parts.note.value.trim() };
+  const values = (parts.note ? { note: parts.note.value.trim() } : {});
   if (parts.duration) {
     values.minutes = minutesFrom(Number(parts.duration.amount.value), parts.duration.unit.value);
   }
@@ -107,7 +105,7 @@ function validate(parts, values) {
   if (parts.reason && !values.reason) {
     return 'Choose a reason.';
   }
-  if (values.reason === OTHER_CODE && values.note.length < NOTE_MIN) {
+  if (values.reason === OTHER_CODE && (!values.note || values.note.length < NOTE_MIN)) {
     return 'Write at least 10 characters explaining this one.';
   }
   return null;
@@ -128,9 +126,13 @@ function openActionModal(config) {
   dialog.appendChild(head);
 
   const body = makeNode('div', 'action-modal__body');
-  const parts = { note: makeNode('textarea', 'field-input action-modal__note') };
-  parts.note.id = 'modal-note';
-  parts.note.rows = '3';
+  const parts = {};
+
+  if (!config.hideNote) {
+    parts.note = makeNode('textarea', 'field-input action-modal__note');
+    parts.note.id = 'modal-note';
+    parts.note.rows = '3';
+  }
 
   if (config.duration) {
     parts.duration = buildDuration();
@@ -140,7 +142,9 @@ function openActionModal(config) {
     parts.reason = buildReasons(config.reasons);
     body.appendChild(buildField('Reason', parts.reason));
   }
-  body.appendChild(buildField('Note', parts.note));
+  if (!config.hideNote) {
+    body.appendChild(buildField('Note', parts.note));
+  }
   dialog.appendChild(body);
 
   const error = makeNode('p', 'action-modal__error');
@@ -197,7 +201,7 @@ function openActionModal(config) {
             confirm.textContent = config.confirmLabel || 'Confirm';
             return;
           }
-          close(entered);
+          close(done && typeof done === 'object' ? { ...entered, ...done } : entered);
         },
         (error) => {
           console.error('The action modal could not finish its request.', error);
@@ -218,8 +222,10 @@ function openActionModal(config) {
     document.body.appendChild(dialog);
     dialog.showModal();
 
-    const firstField = parts.duration ? parts.duration.amount : parts.note;
-    firstField.focus();
+    const firstField = parts.duration ? parts.duration.amount : parts.note || parts.reason;
+    if (firstField) {
+      firstField.focus();
+    }
   });
 }
 
@@ -240,12 +246,15 @@ function showNotice(message, tone) {
 
 function fetchReasons(kind) {
   if (!reasonsRequest) {
-    reasonsRequest = authorisedFetch(`${MODERATION_URL}/moderation/reasons/`).then((response) => {
+    reasonsRequest = authorisedFetch(`${API}/accounts/moderation/reasons/`).then((response) => {
       if (!response.ok) {
         throw new Error(`The moderation reasons request answered ${response.status}.`);
       }
       return response.json();
     });
   }
-  return reasonsRequest.then((data) => data[kind] || []);
+  return reasonsRequest.then((data) => data[kind] || []).catch((error) => {
+    reasonsRequest = null;
+    throw error;
+  });
 }
