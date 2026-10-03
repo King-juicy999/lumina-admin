@@ -18,7 +18,6 @@ const recElements = {
   faculty: document.getElementById('faculty'),
   department: document.getElementById('department'),
   program: document.getElementById('program'),
-  records: null,
   count: document.getElementById('results-count'),
   empty: document.getElementById('empty-state'),
   emptyMessage: document.getElementById('empty-message'),
@@ -76,7 +75,6 @@ function setTab(name) {
   recElements.tabMaterials.setAttribute('aria-selected', String(!usersTab));
   recElements.usersGrid.hidden = !usersTab;
   recElements.materialsGrid.hidden = usersTab;
-  recElements.records = usersTab ? recElements.usersGrid : recElements.materialsGrid;
   recElements.search.placeholder = usersTab
     ? 'Name or matric number'
     : 'Course code or title';
@@ -194,7 +192,7 @@ function buildUserCard(user) {
     makeElement(
       'p',
       'resource-card__meta',
-      `Banned on ${formatStamp(user.banned_at)} — ${user.ban_reason_label || 'not given'}`
+      `Banned on ${formatStamp(user.banned_at)}, ${user.ban_reason_label || 'not given'}`
     )
   );
   body.appendChild(makeElement('p', 'resource-card__meta', `Ban note: ${user.ban_note || 'none'}`));
@@ -281,14 +279,14 @@ function buildMaterialCard(material) {
     makeElement(
       'p',
       'resource-card__meta',
-      `Filed by ${labelFor(FACULTY_NAMES, material.faculty)} / ${labelFor(DEPARTMENT_NAMES, material.department)} — ${material.uploader_real_name || 'an admin'}`
+      `Filed by ${labelFor(FACULTY_NAMES, material.faculty)} / ${labelFor(DEPARTMENT_NAMES, material.department)} - ${material.uploader_real_name || 'an admin'}`
     )
   );
   body.appendChild(
     makeElement(
       'p',
       'resource-card__meta',
-      `Removed on ${formatStamp(material.removed_at)} — ${material.removal_reason_label || 'not given'}`
+      `Removed on ${formatStamp(material.removed_at), ${material.removal_reason_label || 'not given'}`
     )
   );
   body.appendChild(makeElement('p', 'resource-card__meta', `Removal note: ${material.removal_note || 'none'}`));
@@ -409,7 +407,8 @@ function signOut() {
   window.location.href = '/login.html';
 }
 
-recElements.records.addEventListener('click', handleRecordsClick);
+recElements.usersGrid.addEventListener('click', handleRecordsClick);
+recElements.materialsGrid.addEventListener('click', handleRecordsClick);
 recElements.emptyReset.addEventListener('click', resetFilters);
 recElements.logout.addEventListener('click', signOut);
 recElements.search.addEventListener('input', render);

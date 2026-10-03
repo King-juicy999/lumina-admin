@@ -398,7 +398,7 @@ re-renders, so the list shrinks with no reload and the record count stays in ste
 
 Super admin only. A deleted items console split into two tabs: Users and Materials.
 The tab band above the filter row shows two counts pulled from
-`GET /accounts/recycle/summary/` — the number of deleted users and the number of
+`GET /accounts/recycle/summary/`, with the number of deleted users and the number of
 deleted materials. The same four control fields live on the users page: a search
 that reads "Name or matric number" on the users tab and "Course code or title" on
 the materials tab, then faculty, department and program.
