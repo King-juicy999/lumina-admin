@@ -63,6 +63,30 @@ function initials(name) {
     .join('');
 }
 
+function populateSelect(select, values, firstLabel, names) {
+  const first = makeElement('option', '', firstLabel);
+  first.value = 'all';
+  select.replaceChildren(first);
+  for (const value of values) {
+    const option = makeElement('option', '', names ? labelFor(names, value) : value);
+    option.value = value;
+    select.appendChild(option);
+  }
+}
+
+function populateFaculties() {
+  populateSelect(recElements.faculty, Object.keys(CASCADE), 'All faculties', FACULTY_NAMES);
+}
+
+function populateDepartments(faculty) {
+  const departments = faculty === 'all' ? {} : CASCADE[faculty].departments;
+  populateSelect(recElements.department, Object.keys(departments), 'All departments', DEPARTMENT_NAMES);
+}
+
+function populatePrograms(department) {
+  populateSelect(recElements.program, programsFor(department), 'All programs', PROGRAM_NAMES);
+}
+
 function setTab(name) {
   if (name === activeTab) {
     return;
@@ -279,14 +303,14 @@ function buildMaterialCard(material) {
     makeElement(
       'p',
       'resource-card__meta',
-      `Filed by ${labelFor(FACULTY_NAMES, material.faculty)} / ${labelFor(DEPARTMENT_NAMES, material.department)} - ${material.uploader_real_name || 'an admin'}`
+      `Filed by ${labelFor(FACULTY_NAMES, material.faculty)} / ${labelFor(DEPARTMENT_NAMES, material.department)}, ${material.uploader_real_name || 'an admin'}`
     )
   );
   body.appendChild(
     makeElement(
       'p',
       'resource-card__meta',
-      `Removed on ${formatStamp(material.removed_at), ${material.removal_reason_label || 'not given'}`
+      `Removed on ${formatStamp(material.removed_at)}, ${material.removal_reason_label || 'not given'}`
     )
   );
   body.appendChild(makeElement('p', 'resource-card__meta', `Removal note: ${material.removal_note || 'none'}`));
