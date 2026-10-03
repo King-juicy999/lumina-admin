@@ -1,7 +1,9 @@
 const API = 'https://william999.pythonanywhere.com/api';
 const RECYCLE_SUMMARY_URL = `${API}/accounts/recycle/summary/`;
-const RECYCLE_USERS_URL = `${API}/accounts/users/`;
+const RECYCLE_USERS_URL = `${API}/accounts/recycle/users/`;
 const RECYCLE_MATERIALS_URL = `${API}/materials/recycle/`;
+const USERS_URL = `${API}/accounts/users/`;
+const MATERIALS_URL = `${API}/materials/`;
 
 let activeTab = 'users';
 let recycleUsers = [];
@@ -364,8 +366,8 @@ function setCascade(department) {
 async function runRestore(kind, id, item) {
   const url =
     kind === 'users'
-      ? `${RECYCLE_USERS_URL}${id}/restore/`
-      : `${RECYCLE_MATERIALS_URL}${id}/restore/`;
+      ? `${USERS_URL}${id}/restore/`
+      : `${MATERIALS_URL}${id}/restore/`;
   try {
     const response = await authorisedFetch(url, {
       method: 'POST',
@@ -449,10 +451,14 @@ recElements.department.addEventListener('change', () => {
 });
 recElements.program.addEventListener('change', render);
 
-populateFaculties();
-populateDepartments('all');
-populatePrograms('all');
-setCascade('all');
-populateCounts();
-loadRecycleUsers();
-loadRecycleMaterials();
+if (!isSuperAdmin()) {
+  window.location.href = 'users.html';
+} else {
+  populateFaculties();
+  populateDepartments('all');
+  populatePrograms('all');
+  setCascade('all');
+  populateCounts();
+  loadRecycleUsers();
+  loadRecycleMaterials();
+}
