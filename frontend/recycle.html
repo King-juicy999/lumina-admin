@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Lumina Admin | Recycle bin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body data-page="recycle">
+    <header class="plate-nav">
+      <div class="container plate-nav__inner">
+        <a href="index.html" class="plate-brand"><span class="plate-brand__name">Lumina</span><span class="plate-brand__tag">Admin Console</span></a>
+        <nav class="plate-links" aria-label="Admin sections">
+          <a href="index.html">Overview</a>
+          <a href="materials.html">Materials</a>
+          <a href="users.html">Users</a>
+          <a href="requests.html" data-role="super" hidden>Ban requests</a>
+          <a href="recycle.html" aria-current="page" data-role="super" hidden>Recycle bin</a>
+          <button type="button" class="plate-btn plate-btn--logout" id="logout-btn">Sign out</button>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <section class="lp-section">
+        <div class="container">
+          <div class="band-label"><h1>Recycle bin</h1><span class="band-rule" aria-hidden="true"></span><span class="results-count" id="results-count">0 deleted</span></div>
+          <div class="records-grid" id="records"></div>
+          <div class="empty-state" id="empty-state" hidden><p>No deleted records.</p></div>
+        </div>
+      </section>
+    </main>
+    <footer class="colophon"><div class="container colophon__inner"><p>Private console &middot; not student facing</p><nav><a href="index.html">Overview</a><a href="materials.html">Materials</a><a href="users.html">Users</a><a href="requests.html" data-role="super" hidden>Ban requests</a><a href="recycle.html" data-role="super" hidden>Recycle bin</a></nav></div></footer>
+    <p class="notice" id="notice" role="status" aria-live="polite"></p>
+    <script src="js/hierarchy.js"></script>
+    <script src="js/session.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/recycle.js"></script>
+  </body>
+</html>

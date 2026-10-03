@@ -71,3 +71,16 @@ const CASCADE = {
 function labelFor(names, id) {
   return names[id] || id || '';
 }
+
+function facultyMatches(user, faculty) {
+  return fieldMatches(user, faculty, 'faculty', FACULTY_NAMES);
+}
+function departmentMatches(user, department) {
+  return fieldMatches(user, department, 'department', DEPARTMENT_NAMES);
+}
+function programMatches(user, program) {
+  return fieldMatches(user, program, 'program', PROGRAM_NAMES);
+}
+function fieldMatches(user, value, slug, names) {
+  return user[slug] === value || user[slug] === names[value];
+}
