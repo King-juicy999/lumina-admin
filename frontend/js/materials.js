@@ -48,15 +48,6 @@ function populateDepartments(faculty) {
   populateSelect(elements.department, Object.keys(departments), 'All departments', DEPARTMENT_NAMES);
 }
 
-function programsFor(department) {
-  for (const data of Object.values(CASCADE)) {
-    if (data.departments[department]) {
-      return data.departments[department];
-    }
-  }
-  return [];
-}
-
 function populatePrograms(department) {
   populateSelect(elements.program, programsFor(department), 'All programs', PROGRAM_NAMES);
 }

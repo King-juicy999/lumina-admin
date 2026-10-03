@@ -143,7 +143,7 @@ function openActionModal(config) {
     body.appendChild(buildField('Reason', parts.reason));
   }
   if (!config.hideNote) {
-    body.appendChild(buildField('Note', parts.note));
+    body.appendChild(buildField(config.noteLabel || 'Note', parts.note));
   }
   dialog.appendChild(body);
 

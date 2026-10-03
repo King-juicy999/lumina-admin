@@ -137,6 +137,35 @@ body {
   box-shadow: inset 0 -2px 0 var(--filing-red);
 }
 
+.recycle-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--ledger);
+}
+
+.recycle-tab {
+  background: none;
+  border: none;
+  padding: 0.55rem 1rem;
+  color: var(--ink-soft);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 180ms var(--ease), border-color 180ms var(--ease);
+}
+
+.recycle-tab:hover {
+  color: var(--stamp);
+}
+
+.recycle-tab.active {
+  color: var(--stamp-deep);
+  border-bottom-color: var(--stamp);
+}
+
 .plate-btn {
   display: inline-flex;
   align-items: center;

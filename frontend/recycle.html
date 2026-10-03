@@ -10,9 +10,13 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body data-page="recycle">
+
     <header class="plate-nav">
       <div class="container plate-nav__inner">
-        <a href="index.html" class="plate-brand"><span class="plate-brand__name">Lumina</span><span class="plate-brand__tag">Admin Console</span></a>
+        <a href="index.html" class="plate-brand">
+          <span class="plate-brand__name">Lumina</span>
+          <span class="plate-brand__tag">Admin Console</span>
+        </a>
         <nav class="plate-links" aria-label="Admin sections">
           <a href="index.html">Overview</a>
           <a href="materials.html">Materials</a>
@@ -23,17 +27,81 @@
         </nav>
       </div>
     </header>
+
     <main>
-      <section class="lp-section">
-        <div class="container">
-          <div class="band-label"><h1>Recycle bin</h1><span class="band-rule" aria-hidden="true"></span><span class="results-count" id="results-count">0 deleted</span></div>
-          <div class="records-grid" id="records"></div>
-          <div class="empty-state" id="empty-state" hidden><p>No deleted records.</p></div>
+
+      <section class="lp-stats" aria-label="Recycle bin counts">
+        <div class="container lp-stats__inner">
+          <div class="lp-stats__cell">
+            <p class="lp-stats__value" id="stat-deleted-users">0</p>
+            <p class="lp-stats__label">Deleted users</p>
+          </div>
+          <div class="lp-stats__cell">
+            <p class="lp-stats__value" id="stat-deleted-materials">0</p>
+            <p class="lp-stats__label">Deleted materials</p>
+          </div>
         </div>
       </section>
+
+      <section class="lp-section">
+        <div class="container">
+          <div class="band-label">
+            <h1>Recycle bin</h1>
+            <span class="band-rule" aria-hidden="true"></span>
+            <span class="results-count" id="results-count">0 records</span>
+          </div>
+
+          <div class="recycle-tabs" role="tablist" aria-label="Recycle bin contents">
+            <button role="tab" aria-selected="true" aria-controls="users-grid" id="tab-users" class="recycle-tab">Users</button>
+            <button role="tab" aria-selected="false" aria-controls="materials-grid" id="tab-materials" class="recycle-tab">Materials</button>
+          </div>
+
+          <div class="control-bar" role="search">
+            <div class="field field-search">
+              <label class="field-label" for="search">Search</label>
+              <input id="search" class="field-input" type="search" placeholder="Name or matric number" autocomplete="off" />
+            </div>
+            <div class="field field-menu" data-level="faculty">
+              <label class="field-label" for="faculty">Faculty</label>
+              <select id="faculty" class="field-select"></select>
+            </div>
+            <div class="field field-menu" data-level="department" hidden>
+              <label class="field-label" for="department">Department</label>
+              <select id="department" class="field-select"></select>
+            </div>
+            <div class="field field-menu" data-level="program" hidden>
+              <label class="field-label" for="program">Program</label>
+              <select id="program" class="field-select"></select>
+            </div>
+          </div>
+
+          <div class="records-grid" id="users-grid" role="tabpanel" aria-labelledby="tab-users"></div>
+          <div class="records-grid" id="materials-grid" role="tabpanel" aria-labelledby="tab-materials" hidden></div>
+
+          <div class="empty-state" id="empty-state" hidden>
+            <p id="empty-message"></p>
+            <button class="empty-reset" id="empty-reset" type="button">Clear the filters</button>
+          </div>
+        </div>
+      </section>
+
     </main>
-    <footer class="colophon"><div class="container colophon__inner"><p>Private console &middot; not student facing</p><nav><a href="index.html">Overview</a><a href="materials.html">Materials</a><a href="users.html">Users</a><a href="requests.html" data-role="super" hidden>Ban requests</a><a href="recycle.html" data-role="super" hidden>Recycle bin</a></nav></div></footer>
+
+    <footer class="colophon">
+      <div class="container colophon__inner">
+        <p>Private console &middot; not student facing</p>
+        <nav>
+          <a href="index.html">Overview</a>
+          <a href="materials.html">Materials</a>
+          <a href="users.html">Users</a>
+          <a href="requests.html" data-role="super" hidden>Ban requests</a>
+          <a href="recycle.html" data-role="super" hidden>Recycle bin</a>
+        </nav>
+      </div>
+    </footer>
+
     <p class="notice" id="notice" role="status" aria-live="polite"></p>
+
     <script src="js/hierarchy.js"></script>
     <script src="js/session.js"></script>
     <script src="js/modal.js"></script>

@@ -372,6 +372,58 @@ The search field is capped at 18rem on this page only, through a
 flex grow on `.field-search` would otherwise stretch it across the whole row. The
 materials page keeps the uncapped version.
 
+## requests.html and js/requests.js
+
+Super admin only. A card grid of ban requests waiting on a decision, pulled from
+`GET /accounts/ban-requests/` once on load and kept in a module level `banRequests`
+array. Every request carries the banned account under `target`, so the card shows
+the full name, matric number, faculty, department and programme, who requested the
+ban, the reason, the date requested and any note. The empty state reads "No ban
+requests waiting."
+
+The page guards access the same way users does. With no stored token it redirects
+to `/login.html`, and when the token is gone a 401 or 403 clears the session and
+redirects there. A non-super admin is sent to `users.html`.
+
+Clicking Approve ban or Deny on a card opens `openActionModal` from `modal.js`.
+The title states the account, and the intro explains that an approved ban makes the
+account show as deleted to the user while the record is kept, or that a denied
+request leaves the account with access. The note field is labelled "decision note".
+On confirm the handler stores `entry.decision_note` and posts `POST
+/accounts/ban-requests/<id>/approve/` or `POST /accounts/ban-requests/<id>/deny/`
+with a `decision_note` body. `dropRequest` removes the id from `banRequests` and
+re-renders, so the list shrinks with no reload and the record count stays in step.
+
+## recycle.html and js/recycle.js
+
+Super admin only. A deleted items console split into two tabs: Users and Materials.
+The tab band above the filter row shows two counts pulled from
+`GET /accounts/recycle/summary/` — the number of deleted users and the number of
+deleted materials. The same four control fields live on the users page: a search
+that reads "Name or matric number" on the users tab and "Course code or title" on
+the materials tab, then faculty, department and program.
+
+`loadRecycleUsers` fetches `GET /accounts/users/` and `loadRecycleMaterials`
+fetches `GET /materials/recycle/`. Both guard against missing tokens and role,
+then store their arrays in module level `recycleUsers` and `recycleMaterials`.
+There is no server-side delete, so these are the records flagged deleted on the
+main app and surfaced here for the super admin.
+
+Each tab applies the cascade: search, faculty, department and program on the users
+tab, and search only on the materials tab. `setEmptyState` distinguishes the two
+empty cases. "Nothing in the recycle bin." appears when the tab has no records at
+all, and "No records match" when the filters hid everything, with a "Clear the
+filters" button in the second case.
+
+A user card shows the avatar, full name, matric number, the faculty slash
+department slash level line, when and why they were banned, the ban note and who
+banned them, plus a Restore button. A material card shows the "Deleted" pill, the
+course code and level, the title, the session, who filed it, when and why it was
+removed, the removal note and a Restore button. Restoring posts the item's
+`<id>/restore/` endpoint with an empty body. On success the item is removed from
+its local array, the tab and its count re-render, and the stat band updates to the
+new total.
+
 ## roles
 
 The main app now has three roles: super admin (`is_superuser`), admin
