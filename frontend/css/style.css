@@ -1456,3 +1456,4 @@ body[data-page='users'] .records-grid {
     transition-duration: 120ms;
   }
 }
+.plate-role-label { font-family: var(--font-record); font-size: 0.72rem; font-weight: 600; color: var(--ink-soft); margin-left: 0.6rem; padding-left: 0.6rem; border-left: 1px solid var(--ledger); }

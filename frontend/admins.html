@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Lumina Admin | Ban requests</title>
+    <title>Lumina Admin | Admins</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="css/style.css" />
   </head>
-  <body data-page="requests">
+  <body data-page="admins">
     <header class="plate-nav">
       <div class="container plate-nav__inner">
         <a href="index.html" class="plate-brand">
@@ -20,30 +20,42 @@
           <a href="index.html">Overview</a>
           <a href="materials.html">Materials</a>
           <a href="users.html">Users</a>
-          <a href="requests.html" aria-current="page" data-role="super" hidden>Ban requests</a>
+          <a href="requests.html" data-role="super" hidden>Ban requests</a>
           <a href="recycle.html" data-role="super" hidden>Recycle bin</a>
-          <a href="admins.html" data-role="super" hidden>Admins</a>
+          <a href="admins.html" aria-current="page" data-role="super" hidden>Admins</a>
           <button type="button" class="plate-btn plate-btn--logout" id="logout-btn">Sign out</button>
         </nav>
       </div>
     </header>
-
     <main>
       <section class="lp-section">
         <div class="container">
           <div class="band-label">
-            <h1>Ban requests</h1>
+            <h1>Admins</h1>
             <span class="band-rule" aria-hidden="true"></span>
-            <span class="results-count" id="results-count">0 waiting</span>
+            <span class="results-count" id="results-count">0 records</span>
           </div>
-          <div class="records-grid" id="records"></div>
+          <div id="team-section">
+            <h2 class="section-sub">Team</h2>
+            <div class="records-grid" id="team-grid"></div>
+          </div>
+          <div id="search-section">
+            <h2 class="section-sub">Give admin access</h2>
+            <div class="control-bar" role="search">
+              <div class="field field-search">
+                <label class="field-label" for="search-students">Search students</label>
+                <input id="search-students" class="field-input" type="search" placeholder="Name or matric number" autocomplete="off" />
+              </div>
+            </div>
+            <div class="records-grid" id="search-grid"></div>
+          </div>
           <div class="empty-state" id="empty-state" hidden>
-            <p>No ban requests waiting.</p>
+            <p id="empty-message">No matches.</p>
+            <button class="empty-reset" id="empty-reset" type="button">Clear the search</button>
           </div>
         </div>
       </section>
     </main>
-
     <footer class="colophon">
       <div class="container colophon__inner">
         <p>Private console &middot; not student facing</p>
@@ -57,12 +69,10 @@
         </nav>
       </div>
     </footer>
-
     <p class="notice" id="notice" role="status" aria-live="polite"></p>
-
     <script src="js/hierarchy.js"></script>
     <script src="js/session.js"></script>
     <script src="js/modal.js"></script>
-    <script src="js/requests.js"></script>
+    <script src="js/admins.js"></script>
   </body>
 </html>
