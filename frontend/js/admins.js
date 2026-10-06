@@ -126,8 +126,12 @@ function renderSearch() {
   });
   elements.searchGrid.replaceChildren(...visible.map(buildStudentCard));
   elements.count.textContent = `${visible.length} ${visible.length === 1 ? 'record' : 'records'}`;
-  if (visible.length === 0 && students.length > 0) {
-    elements.emptyMsg.textContent = 'No students match.';
+  if (visible.length === 0) {
+    if (students.length === 0) {
+      elements.emptyMsg.textContent = 'No students available.';
+    } else {
+      elements.emptyMsg.textContent = 'No students match.';
+    }
     elements.empty.hidden = false;
   } else {
     elements.empty.hidden = true;
@@ -136,19 +140,6 @@ function renderSearch() {
   elements.searchError.hidden = true;
 }
 
-async function loadProfile() {
-  try {
-    const response = await fetch(`${API}/accounts/admin/me/`, {
-      headers: { Accept: 'application/json', Authorization: `Bearer ${sessionStorage.getItem('lumina_access_token')}` }
-    });
-    if (response.ok) {
-      const data = await response.json();
-      window.profileData = data;
-    }
-  } catch (e) {
-    console.error('Profile could not be loaded.', e);
-  }
-}
 
 async function loadTeam() {
   if (!isSuperAdmin()) {
@@ -193,7 +184,7 @@ async function loadStudents() {
     });
     if (response.ok) {
       const all = await response.json();
-      students = all.filter((u) => u.role === 'student' || !u.role || u.role === null);
+      students = all.filter((u) => u.role === 'student');
     } else {
       throw new Error(`status ${response.status}`);
     }
@@ -218,7 +209,7 @@ async function changeRole(action, id) {
       try {
         const data = JSON.parse(text);
         msg = data.detail || data.message || msg;
-      } catch (_) { /* ignore */ }
+      } catch (_) {}
       showNotice(msg, 'bad');
       return false;
     }
@@ -295,8 +286,7 @@ function signOut() {
 if (!isSuperAdmin()) {
   window.location.href = 'users.html';
 } else {
-  loadProfile().then(() => {
-    addHeaderRole();
+  loadAndInitialize().then(() => {
     loadTeam();
     loadStudents();
   });

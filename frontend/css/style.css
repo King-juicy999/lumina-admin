@@ -1530,4 +1530,33 @@ body[data-page='users'] .records-grid {
     transition-duration: 120ms;
   }
 }
+
+.record-action--promote,
+.record-action--make-admin {
+  border-color: var(--stamp);
+  color: var(--stamp-deep);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .record-action--promote:hover,
+  .record-action--make-admin:hover {
+    background: color-mix(in srgb, var(--stamp) 12%, var(--record));
+    border-color: var(--stamp-deep);
+  }
+}
+
+.record-action--promote:active,
+.record-action--make-admin:active {
+  background: color-mix(in srgb, var(--stamp) 20%, var(--record));
+  border-color: var(--stamp-deep);
+}
+
+@media (max-width: 640px) {
+  .record-action--promote,
+  .record-action--make-admin {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.7rem;
+  }
+}
+
 .plate-role-label { font-family: var(--font-record); font-size: 0.72rem; font-weight: 600; color: var(--ink-soft); margin-left: 0.6rem; padding-left: 0.6rem; border-left: 1px solid var(--ledger); }

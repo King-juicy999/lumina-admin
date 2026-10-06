@@ -44,6 +44,22 @@ function revealSuperAdminControls() {
   }
 }
 
+async function loadAndInitialize() {
+  try {
+    const response = await fetch('https://william999.pythonanywhere.com/api/accounts/admin/me/', {
+      headers: { Accept: 'application/json', Authorization: `Bearer ${sessionStorage.getItem(SESSION_ACCESS_KEY)}` }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      window.profileData = data;
+    }
+  } catch (e) {
+    console.error('Profile could not be loaded.', e);
+  }
+  addHeaderRole();
+  revealSuperAdminControls();
+}
+
 function addHeaderRole() {
   const nav = document.querySelector('.plate-nav .plate-links');
   if (!nav) return;
@@ -63,4 +79,4 @@ function addHeaderRole() {
   nav.insertBefore(node, nav.firstChild);
 }
 
-revealSuperAdminControls();
+loadAndInitialize();
