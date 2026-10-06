@@ -164,14 +164,13 @@ async function loadTeam() {
     }
     if (!response.ok) throw new Error(`status ${response.status}`);
     teamMembers = await response.json();
+    renderTeam();
   } catch (error) {
     console.error('The admin team could not be loaded.', error);
     teamMembers = [];
     elements.teamLoading.hidden = true;
     elements.teamError.hidden = false;
-    return;
   }
-  renderTeam();
 }
 
 async function loadStudents() {
@@ -185,6 +184,7 @@ async function loadStudents() {
     if (response.ok) {
       const all = await response.json();
       students = all.filter((u) => u.role === 'student');
+      renderSearch();
     } else {
       throw new Error(`status ${response.status}`);
     }
@@ -193,9 +193,7 @@ async function loadStudents() {
     students = [];
     elements.searchLoading.hidden = true;
     elements.searchError.hidden = false;
-    return;
   }
-  renderSearch();
 }
 
 async function changeRole(action, id) {
