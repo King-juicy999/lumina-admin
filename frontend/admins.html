@@ -37,6 +37,11 @@
           </div>
           <div id="team-section">
             <h2 class="section-sub">Team</h2>
+            <div class="loading-state" id="team-loading" hidden>Loading team</div>
+            <div class="error-state" id="team-error" hidden>
+              <span>The team could not be loaded.</span>
+              <button type="button" class="error-state__retry" id="team-retry">Try again</button>
+            </div>
             <div class="records-grid" id="team-grid"></div>
           </div>
           <div id="search-section">
@@ -47,11 +52,16 @@
                 <input id="search-students" class="field-input" type="search" placeholder="Name or matric number" autocomplete="off" />
               </div>
             </div>
+            <div class="loading-state" id="search-loading" hidden>Loading students</div>
+            <div class="error-state" id="search-error" hidden>
+              <span>Students could not be loaded.</span>
+              <button type="button" class="error-state__retry" id="search-retry">Try again</button>
+            </div>
             <div class="records-grid" id="search-grid"></div>
-          </div>
-          <div class="empty-state" id="empty-state" hidden>
-            <p id="empty-message">No matches.</p>
-            <button class="empty-reset" id="empty-reset" type="button">Clear the search</button>
+            <div class="empty-state" id="empty-state" hidden>
+              <p id="empty-message">No students match.</p>
+              <button class="empty-reset" id="empty-reset" type="button">Clear the search</button>
+            </div>
           </div>
         </div>
       </section>

@@ -7,7 +7,13 @@ let students = [];
 
 const elements = {
   teamGrid: document.getElementById('team-grid'),
+  teamLoading: document.getElementById('team-loading'),
+  teamError: document.getElementById('team-error'),
+  teamRetry: document.getElementById('team-retry'),
   searchGrid: document.getElementById('search-grid'),
+  searchLoading: document.getElementById('search-loading'),
+  searchError: document.getElementById('search-error'),
+  searchRetry: document.getElementById('search-retry'),
   search: document.getElementById('search-students'),
   count: document.getElementById('results-count'),
   empty: document.getElementById('empty-state'),
@@ -38,6 +44,11 @@ function roleBadge(role) {
 }
 
 function buildTeamCard(member) {
+  const profile = window.profileData || {};
+  const isSelf = member.id === profile.id;
+  const isOwner = Boolean(member.is_owner);
+  const isSuper = member.role === 'super_admin';
+
   const card = makeElement('article', 'resource-card resource-card--person');
   card.appendChild(makeElement('span', 'avatar', initials(member.full_name)));
   const body = makeElement('div', 'resource-card__body');
@@ -45,39 +56,37 @@ function buildTeamCard(member) {
   body.appendChild(makeElement('p', 'resource-card__ref', member.matric_number));
   const meta = makeElement('p', 'resource-card__meta');
   meta.appendChild(roleBadge(member.role));
-  if (member.is_owner) meta.appendChild(makeElement('span', 'pill pill--hidden', 'Owner'));
+  if (member.is_owner) meta.appendChild(makeElement('span', 'pill pill--owner', 'Owner'));
   if (member.date_joined) meta.appendChild(document.createTextNode(` / joined ${formatDate(member.date_joined)}`));
   body.appendChild(meta);
   card.appendChild(body);
+
   const foot = makeElement('div', 'resource-card__foot');
-  const me = document.getElementById('current-user-id') ? Number(document.getElementById('current-user-id').dataset.id) : null;
-  const currentProfile = window.profileData || {};
-  const currentId = currentProfile.id || (sessionStorage.getItem('lumina_admin_role') ? null : null);
-  const isSelf = member.id === (currentProfile.id || (window.currentUserId ? window.currentUserId : null));
-  const isOwner = Boolean(member.is_owner);
-  const isSuper = member.role === 'super_admin';
-  const canSuper = Boolean(currentProfile.is_owner || (currentProfile.role === 'super_admin' && !isSelf));
-  if (isSuper && !isSelf && canSuper) {
-    const btn = makeElement('button', 'record-action record-action--remove', 'Remove super admin');
-    btn.type = 'button';
-    btn.dataset.id = String(member.id);
-    btn.dataset.role = 'super_admin';
-    foot.appendChild(btn);
+
+  if (!isSelf && !isOwner) {
+    if (isSuper && profile.is_owner) {
+      const btn = makeElement('button', 'record-action record-action--remove', 'Remove super admin');
+      btn.type = 'button';
+      btn.dataset.id = String(member.id);
+      btn.dataset.action = 'remove-super-admin';
+      foot.appendChild(btn);
+    }
+    if (!isSuper && profile.role === 'super_admin') {
+      const btn = makeElement('button', 'record-action record-action--promote', 'Make super admin');
+      btn.type = 'button';
+      btn.dataset.id = String(member.id);
+      btn.dataset.action = 'make-super-admin';
+      foot.appendChild(btn);
+    }
+    if (member.role === 'admin' && profile.role === 'super_admin') {
+      const btn = makeElement('button', 'record-action record-action--remove', 'Remove admin');
+      btn.type = 'button';
+      btn.dataset.id = String(member.id);
+      btn.dataset.action = 'remove-admin';
+      foot.appendChild(btn);
+    }
   }
-  if (!isSuper && isSuperAdmin()) {
-    const btn = makeElement('button', 'record-action record-action--remove', 'Remove admin');
-    btn.type = 'button';
-    btn.dataset.id = String(member.id);
-    btn.dataset.role = 'admin';
-    foot.appendChild(btn);
-  }
-  if (!isSuper && isSuperAdmin()) {
-    const btn = makeElement('button', 'record-action record-action--promote', 'Make super admin');
-    btn.type = 'button';
-    btn.dataset.id = String(member.id);
-    btn.dataset.role = 'admin';
-    foot.appendChild(btn);
-  }
+
   card.appendChild(foot);
   return card;
 }
@@ -97,6 +106,7 @@ function buildStudentCard(student) {
   const btn = makeElement('button', 'record-action record-action--make-admin', 'Make admin');
   btn.type = 'button';
   btn.dataset.id = String(student.id);
+  btn.dataset.action = 'make-admin';
   foot.appendChild(btn);
   card.appendChild(foot);
   return card;
@@ -104,6 +114,8 @@ function buildStudentCard(student) {
 
 function renderTeam() {
   elements.teamGrid.replaceChildren(...teamMembers.map(buildTeamCard));
+  elements.teamLoading.hidden = true;
+  elements.teamError.hidden = true;
 }
 
 function renderSearch() {
@@ -115,12 +127,13 @@ function renderSearch() {
   elements.searchGrid.replaceChildren(...visible.map(buildStudentCard));
   elements.count.textContent = `${visible.length} ${visible.length === 1 ? 'record' : 'records'}`;
   if (visible.length === 0 && students.length > 0) {
-    elements.emptyMsg.textContent = 'No students match';
+    elements.emptyMsg.textContent = 'No students match.';
     elements.empty.hidden = false;
-    elements.emptyReset.hidden = false;
   } else {
     elements.empty.hidden = true;
   }
+  elements.searchLoading.hidden = true;
+  elements.searchError.hidden = true;
 }
 
 async function loadProfile() {
@@ -131,7 +144,6 @@ async function loadProfile() {
     if (response.ok) {
       const data = await response.json();
       window.profileData = data;
-      window.currentUserId = data.id;
     }
   } catch (e) {
     console.error('Profile could not be loaded.', e);
@@ -143,6 +155,8 @@ async function loadTeam() {
     window.location.href = 'users.html';
     return;
   }
+  elements.teamLoading.hidden = false;
+  elements.teamError.hidden = true;
   const token = sessionStorage.getItem('lumina_access_token');
   if (!token) {
     window.location.href = '/login.html';
@@ -162,11 +176,16 @@ async function loadTeam() {
   } catch (error) {
     console.error('The admin team could not be loaded.', error);
     teamMembers = [];
+    elements.teamLoading.hidden = true;
+    elements.teamError.hidden = false;
+    return;
   }
   renderTeam();
 }
 
 async function loadStudents() {
+  elements.searchLoading.hidden = false;
+  elements.searchError.hidden = true;
   const token = sessionStorage.getItem('lumina_access_token');
   try {
     const response = await fetch(USERS_URL, {
@@ -175,19 +194,23 @@ async function loadStudents() {
     if (response.ok) {
       const all = await response.json();
       students = all.filter((u) => u.role === 'student' || !u.role || u.role === null);
+    } else {
+      throw new Error(`status ${response.status}`);
     }
   } catch (e) {
     console.error('Student search could not load.', e);
     students = [];
+    elements.searchLoading.hidden = true;
+    elements.searchError.hidden = false;
+    return;
   }
   renderSearch();
 }
 
-async function changeRole(id, role) {
+async function changeRole(action, id) {
   try {
-    const response = await authorisedFetch(`${USERS_URL}${id}/role/`, {
-      method: 'POST',
-      body: JSON.stringify({ role })
+    const response = await authorisedFetch(`${USERS_URL}${id}/${action}/`, {
+      method: 'POST'
     });
     if (!response.ok) {
       const text = await response.text();
@@ -212,30 +235,29 @@ async function handleTeamClick(event) {
   const button = event.target.closest('.record-action');
   if (!button) return;
   const id = Number(button.dataset.id);
-  const action = button.dataset.role === 'super_admin' ? 'remove_super' : button.classList.contains('record-action--promote') ? 'promote' : 'remove';
-  let title, intro, confirmLabel, newRole;
-  if (action === 'promote') {
+  const action = button.dataset.action;
+  let title, intro, confirmLabel;
+  if (action === 'make-super-admin') {
     title = 'Make super admin';
     intro = 'This raises the user to super admin.';
     confirmLabel = 'Make super admin';
-    newRole = 'super_admin';
-  } else if (action === 'remove') {
-    title = 'Remove admin';
-    intro = 'The user will lose admin access.';
-    confirmLabel = 'Remove admin';
-    newRole = 'student';
-  } else {
+  } else if (action === 'remove-super-admin') {
     title = 'Remove super admin';
     intro = 'This lowers the user to admin.';
     confirmLabel = 'Remove super admin';
-    newRole = 'admin';
+  } else if (action === 'remove-admin') {
+    title = 'Remove admin';
+    intro = 'The user will lose admin access.';
+    confirmLabel = 'Remove admin';
+  } else {
+    return;
   }
   const ok = await openActionModal({
     title,
     intro,
     confirmLabel,
     hideNote: true,
-    onConfirm: () => changeRole(id, newRole)
+    onConfirm: () => changeRole(action, id)
   });
   if (ok) {
     await loadTeam();
@@ -244,15 +266,15 @@ async function handleTeamClick(event) {
 }
 
 async function handleSearchClick(event) {
-  const button = event.target.closest('.record-action--make-admin');
-  if (!button) return;
+  const button = event.target.closest('.record-action');
+  if (!button || button.dataset.action !== 'make-admin') return;
   const id = Number(button.dataset.id);
   const ok = await openActionModal({
     title: 'Make admin',
     intro: 'Give admin access to this student.',
     confirmLabel: 'Make admin',
     hideNote: true,
-    onConfirm: () => changeRole(id, 'admin')
+    onConfirm: () => changeRole('make-admin', id)
   });
   if (ok) {
     await loadTeam();
@@ -270,19 +292,11 @@ function signOut() {
   window.location.href = '/login.html';
 }
 
-function addHeaderRole() {
-  const nav = document.querySelector('.plate-nav .plate-links');
-  if (!nav) return;
-  const label = makeElement('span', 'plate-role-label', getRole() === 'super_admin' ? (window.profileData && window.profileData.is_owner ? 'Owner' : 'Super admin') : (getRole() === 'admin' ? 'Admin' : 'Student'));
-  label.setAttribute('aria-label', 'Your role');
-  nav.insertBefore(label, nav.firstChild);
-}
-
 if (!isSuperAdmin()) {
   window.location.href = 'users.html';
 } else {
-  addHeaderRole();
   loadProfile().then(() => {
+    addHeaderRole();
     loadTeam();
     loadStudents();
   });
@@ -290,5 +304,7 @@ if (!isSuperAdmin()) {
   elements.teamGrid.addEventListener('click', handleTeamClick);
   elements.searchGrid.addEventListener('click', handleSearchClick);
   elements.emptyReset.addEventListener('click', resetSearch);
+  elements.teamRetry.addEventListener('click', loadTeam);
+  elements.searchRetry.addEventListener('click', loadStudents);
   elements.logout.addEventListener('click', signOut);
 }

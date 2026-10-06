@@ -44,4 +44,23 @@ function revealSuperAdminControls() {
   }
 }
 
+function addHeaderRole() {
+  const nav = document.querySelector('.plate-nav .plate-links');
+  if (!nav) return;
+  const node = document.createElement('span');
+  node.className = 'plate-role-label';
+  const profile = window.profileData || {};
+  if (profile.is_owner) {
+    node.textContent = 'Owner';
+  } else if (getRole() === 'super_admin') {
+    node.textContent = 'Super admin';
+  } else if (getRole() === 'admin') {
+    node.textContent = 'Admin';
+  } else {
+    node.textContent = 'Student';
+  }
+  node.setAttribute('aria-label', 'Your role');
+  nav.insertBefore(node, nav.firstChild);
+}
+
 revealSuperAdminControls();
