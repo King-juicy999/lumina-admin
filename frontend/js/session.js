@@ -44,6 +44,15 @@ function revealSuperAdminControls() {
   }
 }
 
+function revealOwnerControls() {
+  if (!window.profileData || !window.profileData.is_owner) {
+    return;
+  }
+  for (const node of document.querySelectorAll('[data-role="owner"]')) {
+    node.hidden = false;
+  }
+}
+
 async function loadAndInitialize() {
   try {
     const response = await fetch('https://william999.pythonanywhere.com/api/accounts/admin/me/', {
@@ -58,6 +67,8 @@ async function loadAndInitialize() {
   }
   addHeaderRole();
   revealSuperAdminControls();
+  revealOwnerControls();
+  loadInboxBadge();
 }
 
 function addHeaderRole() {
@@ -82,3 +93,26 @@ function addHeaderRole() {
 }
 
 window.profileReady = loadAndInitialize();
+
+async function loadInboxBadge() {
+  if (!window.profileData || !window.profileData.is_owner) return;
+  const badge = document.getElementById('inbox-badge');
+  if (!badge) return;
+  try {
+    const response = await fetch('https://william999.pythonanywhere.com/api/feedback/inbox/summary/', {
+      headers: { Accept: 'application/json', Authorization: `Bearer ${sessionStorage.getItem(SESSION_ACCESS_KEY)}` }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      const newCount = data.new_count || 0;
+      if (newCount > 0) {
+        badge.textContent = String(newCount);
+        badge.hidden = false;
+      } else {
+        badge.hidden = true;
+      }
+    }
+  } catch (e) {
+    console.error('Inbox badge could not be loaded.', e);
+  }
+}
