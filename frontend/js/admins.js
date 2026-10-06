@@ -286,7 +286,7 @@ function signOut() {
 if (!isSuperAdmin()) {
   window.location.href = 'users.html';
 } else {
-  loadAndInitialize().then(() => {
+  window.profileReady.then(() => {
     loadTeam();
     loadStudents();
   });

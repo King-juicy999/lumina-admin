@@ -63,6 +63,8 @@ async function loadAndInitialize() {
 function addHeaderRole() {
   const nav = document.querySelector('.plate-nav .plate-links');
   if (!nav) return;
+  const existing = nav.querySelector('.plate-role-label');
+  if (existing) existing.remove();
   const node = document.createElement('span');
   node.className = 'plate-role-label';
   const profile = window.profileData || {};
@@ -79,4 +81,4 @@ function addHeaderRole() {
   nav.insertBefore(node, nav.firstChild);
 }
 
-loadAndInitialize();
+window.profileReady = loadAndInitialize();
