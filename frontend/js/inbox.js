@@ -98,6 +98,7 @@ function renderNotes() {
 
   elements.loading.hidden = true;
   elements.error.hidden = true;
+  renderSummary();
 }
 
 function renderSummary() {
@@ -111,9 +112,15 @@ function renderSummary() {
     const chip = makeElement('button', 'summary-chip', `${status.charAt(0).toUpperCase() + status.slice(1)} ${count}`);
     chip.type = 'button';
     chip.dataset.status = status;
-    if (status === 'new') chip.classList.add('summary-chip--active');
+    if (status === elements.filterStatus.value) {
+      chip.classList.add('summary-chip--active');
+    }
     chip.addEventListener('click', () => {
-      elements.filterStatus.value = status;
+      if (elements.filterStatus.value === status) {
+        elements.filterStatus.value = '';
+      } else {
+        elements.filterStatus.value = status;
+      }
       renderNotes();
     });
     elements.summaryChips.appendChild(chip);
@@ -300,6 +307,8 @@ function showNoteModal(note, noteData) {
         const dateSpan = right.querySelector('.inbox-note-date');
         dateSpan.parentNode.insertBefore(statusPill(note.status), dateSpan.nextSibling);
       }
+      renderSummary();
+      loadSummary();
     } catch (error) {
       console.error('Status update failed.', error);
       showNotice('Status could not be updated.', 'bad');
@@ -313,6 +322,23 @@ function showNoteModal(note, noteData) {
   const foot = makeElement('div', 'note-modal__foot');
   const sendBtn = makeElement('button', 'plate-btn', 'Send reply');
   sendBtn.type = 'button';
+
+  function closeDialog(reload) {
+    dialog.remove();
+    document.removeEventListener('keydown', onKeydown);
+    if (opener && opener.focus) {
+      opener.focus();
+    }
+    if (reload) {
+      loadNotes();
+    }
+  }
+
+  function onKeydown(event) {
+    if (event.key === 'Escape') {
+      closeDialog(false);
+    }
+  }
 
   sendBtn.addEventListener('click', async () => {
     const replyText = replyInput.value.trim();
@@ -334,12 +360,9 @@ function showNoteModal(note, noteData) {
       if (!response.ok) throw new Error(`status ${response.status}`);
 
       note.reply_count = (note.reply_count || 0) + 1;
-      replyInput.value = '';
-      counter.textContent = '0 / 2000';
       showNotice('Reply sent.', 'good');
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      close(true);
+      loadSummary();
+      closeDialog(false);
     } catch (error) {
       console.error('Reply could not be sent.', error);
       showNotice('Reply could not be sent.', 'bad');
@@ -350,40 +373,21 @@ function showNoteModal(note, noteData) {
 
   const closeBtn = makeElement('button', 'plate-btn plate-btn--ghost', 'Close');
   closeBtn.type = 'button';
-  closeBtn.addEventListener('click', () => close(false));
+  closeBtn.addEventListener('click', () => closeDialog(false));
 
   foot.append(closeBtn, sendBtn);
   dialog.appendChild(foot);
 
-  return new Promise((resolve) => {
-    function close(reload) {
-      dialog.remove();
-      document.removeEventListener('keydown', onKeydown);
-      if (opener && opener.focus) {
-        opener.focus();
-      }
-      if (reload) {
-        loadNotes();
-      }
-      resolve(reload);
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) {
+      closeDialog(false);
     }
-
-    function onKeydown(event) {
-      if (event.key === 'Escape') {
-        close(false);
-      }
-    }
-
-    dialog.addEventListener('click', (event) => {
-      if (event.target === dialog) {
-        close(false);
-      }
-    });
-    document.addEventListener('keydown', onKeydown);
-    document.body.appendChild(dialog);
-    dialog.showModal();
-    replyInput.focus();
   });
+
+  document.addEventListener('keydown', onKeydown);
+  document.body.appendChild(dialog);
+  dialog.showModal();
+  replyInput.focus();
 }
 
 function signOut() {
@@ -391,12 +395,14 @@ function signOut() {
   window.location.href = '/login.html';
 }
 
-if (!window.profileData || !window.profileData.is_owner) {
-  window.location.href = 'users.html';
-} else {
-  loadNotes();
-  elements.filterCategory.addEventListener('change', renderNotes);
-  elements.filterStatus.addEventListener('change', renderNotes);
-  elements.retryBtn.addEventListener('click', loadNotes);
-  elements.logout.addEventListener('click', signOut);
-}
+window.profileReady.then(() => {
+  if (!window.profileData || !window.profileData.is_owner) {
+    window.location.href = 'users.html';
+  } else {
+    loadNotes();
+    elements.filterCategory.addEventListener('change', renderNotes);
+    elements.filterStatus.addEventListener('change', renderNotes);
+    elements.retryBtn.addEventListener('click', loadNotes);
+    elements.logout.addEventListener('click', signOut);
+  }
+});
