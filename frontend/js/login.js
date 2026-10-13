@@ -32,7 +32,7 @@ function setBusy(busy) {
 }
 
 function unreachableMessage() {
-  return 'The server could not be reached. Open this console from localhost on port 5500 and check your connection.';
+  return 'The server could not be reached. Check your connection and try again.';
 }
 
 function genericMessage() {
@@ -41,6 +41,7 @@ function genericMessage() {
 
 function explainLoginFailure(error) {
   if (error instanceof TypeError) {
+    console.error('The sign in request could not reach the server.', error);
     return unreachableMessage();
   }
   if (error.refused) {
@@ -49,14 +50,17 @@ function explainLoginFailure(error) {
   return genericMessage();
 }
 
-function describeLoginFailure(status) {
+function describeLoginFailure(status, errorDetail) {
   if (status === 429) {
     return 'Too many attempts. Wait a minute and try again.';
+  }
+  if (status === 403) {
+    return typeof errorDetail === 'string' && errorDetail ? errorDetail : 'This account is not allowed to sign in.';
   }
   if (status === 400 || status === 401) {
     return 'That matric number and password are not right.';
   }
-  return 'Sign in is not working right now. Try again in a moment.';
+  return genericMessage();
 }
 
 async function requestToken(matricNumber, password) {
@@ -68,7 +72,8 @@ async function requestToken(matricNumber, password) {
 
   if (!response.ok) {
     console.error('Lumina refused the sign in request.', response.status);
-    const failure = new Error(describeLoginFailure(response.status));
+    const detail = await response.text();
+    const failure = new Error(describeLoginFailure(response.status, detail));
     failure.refused = true;
     throw failure;
   }
@@ -119,7 +124,7 @@ async function handleSubmit(event) {
   showError('');
 
   const matricNumber = elements.matric.value.trim();
-  const password = elements.password.value;
+  const password = elements.password.value.trim();
 
   if (!matricNumber || !password) {
     showError('Enter your matric number and password to sign in.');
