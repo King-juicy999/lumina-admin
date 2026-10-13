@@ -72,7 +72,14 @@ async function requestToken(matricNumber, password) {
 
   if (!response.ok) {
     console.error('Lumina refused the sign in request.', response.status);
-    const detail = await response.text();
+    let detail = '';
+    try {
+      const parsed = await response.json();
+      if (parsed && typeof parsed.detail === 'string' && parsed.detail) {
+        detail = parsed.detail;
+      }
+    } catch {
+    }
     const failure = new Error(describeLoginFailure(response.status, detail));
     failure.refused = true;
     throw failure;
