@@ -129,9 +129,15 @@ function openActionModal(config) {
   const parts = {};
 
   if (!config.hideNote) {
-    parts.note = makeNode('textarea', 'field-input action-modal__note');
-    parts.note.id = 'modal-note';
-    parts.note.rows = '3';
+    if (config.password) {
+      parts.note = makeNode('input', 'field-input action-modal__note');
+      parts.note.id = 'modal-note';
+      parts.note.type = 'password';
+    } else {
+      parts.note = makeNode('textarea', 'field-input action-modal__note');
+      parts.note.id = 'modal-note';
+      parts.note.rows = '3';
+    }
   }
 
   if (config.duration) {
@@ -209,6 +215,16 @@ function openActionModal(config) {
           confirm.textContent = config.confirmLabel || 'Confirm';
         }
       );
+    }
+
+    function updateConfirm() {
+      if (config.password && parts.note) {
+        confirm.disabled = !(parts.note.value || '').trim();
+      }
+    }
+    if (config.password && parts.note) {
+      parts.note.addEventListener('input', updateConfirm);
+      updateConfirm();
     }
 
     cancel.addEventListener('click', () => close(null));

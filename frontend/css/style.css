@@ -816,6 +816,24 @@ body[data-page='users'] .field-search {
   color: var(--filing-red);
 }
 
+.record-action--delete {
+  border-color: var(--filing-red);
+  color: var(--filing-red);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .record-action--delete:hover {
+    background: var(--filing-red);
+    color: #fffef8;
+  }
+}
+
+.record-action--delete:active {
+  background: var(--stamp-deep);
+  border-color: var(--stamp-deep);
+  color: #fffef8;
+}
+
 .record-action--ban {
   border-color: var(--filing-red);
   color: var(--filing-red);

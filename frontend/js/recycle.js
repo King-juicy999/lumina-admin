@@ -232,6 +232,12 @@ function buildUserCard(user) {
   restore.type = 'button';
   restore.dataset.id = String(user.id);
   foot.appendChild(restore);
+  if (window.profileData && window.profileData.is_owner) {
+    const del = makeElement('button', 'record-action record-action--delete', 'Delete permanently');
+    del.type = 'button';
+    del.dataset.id = String(user.id);
+    foot.appendChild(del);
+  }
   card.appendChild(foot);
   return card;
 }
@@ -393,6 +399,61 @@ async function runRestore(kind, id, item) {
   }
 }
 
+function deletePermanently(id, kind) {
+  const list = kind === 'users' ? recycleUsers : recycleMaterials;
+  const item = list.find((entry) => entry.id === id);
+  if (!item) return;
+  const url = kind === 'users' ? `${API}/accounts/users/${id}/permanent-delete/` : `${API}/materials/${id}/permanent-delete/`;
+  openActionModal({
+    title: `Delete ${item.full_name || item.course_title || item.title} permanently`,
+    intro: `This removes ${item.matric_number || item.course_code || ''} from the system. It is irreversible and removes all uploads.`,
+    confirmLabel: 'Delete permanently',
+    password: true,
+    noteLabel: 'Owner password',
+    onConfirm: async (values) => {
+      try {
+        const response = await authorisedFetch(url, {
+          method: 'POST',
+          body: JSON.stringify({ password: (values.note || '').trim() })
+        });
+        if (response.ok) {
+          if (kind === 'users') {
+            recycleUsers = recycleUsers.filter((u) => u.id !== id);
+          } else {
+            recycleMaterials = recycleMaterials.filter((m) => m.id !== id);
+          }
+          if (activeTab === kind) render();
+          populateCounts();
+          showNotice('Deleted permanently.', 'good');
+          return true;
+        }
+        const detail = await response.json().catch(() => ({}));
+        const msg = detail.detail || detail.error || '';
+        if (msg.includes('Wrong password')) {
+          return false;
+        }
+        if (msg.includes('Only banned accounts')) {
+          return false;
+        }
+        if (msg.includes('Not banned')) {
+          return false;
+        }
+        if (msg.includes('You cannot delete')) {
+          return false;
+        }
+        return false;
+      } catch (e) {
+        console.error('Permanent delete failed.', e);
+        return false;
+      }
+    },
+    validate: (parts, values) => {
+      if (!values.note || !(values.note || '').trim()) return 'Enter your owner password.';
+      return null;
+    }
+  });
+}
+
 function restoreItem(id, kind) {
   const list = kind === 'users' ? recycleUsers : recycleMaterials;
   const item = list.find((entry) => entry.id === id);
@@ -414,7 +475,11 @@ function handleRecordsClick(event) {
     return;
   }
   const id = Number(button.dataset.id);
-  restoreItem(id, activeTab);
+  if (button.classList.contains('record-action--delete')) {
+    deletePermanently(id, 'users');
+  } else {
+    restoreItem(id, activeTab);
+  }
 }
 
 function resetFilters() {
