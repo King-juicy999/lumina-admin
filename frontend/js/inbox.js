@@ -49,6 +49,37 @@ function previewText(message) {
   return message.split('\n')[0].substring(0, 120) || '(No message)';
 }
 
+function deleteNote(noteId) {
+  openActionModal({
+    title: 'Delete note',
+    intro: 'This note and all its replies will be removed permanently. The student\'s receipt code will stop working.',
+    confirmLabel: 'Delete',
+    onConfirm: async () => {
+      try {
+        const token = sessionStorage.getItem('lumina_access_token');
+        const response = await fetch(`${INBOX_URL}${noteId}/`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.status === 204) return true;
+        if (!response.ok) return `Failed: ${response.status}`;
+      } catch (e) {
+        console.error('Delete failed.', e);
+        return 'Could not delete note.';
+      }
+    }
+  }).then((done) => {
+    if (done === true) {
+      notes = notes.filter((n) => n.id !== noteId);
+      renderNotes();
+      loadSummary();
+      showNotice('Note deleted', 'good');
+    } else if (done === false || typeof done === 'string') {
+      showNotice(typeof done === 'string' ? done : 'Note could not be deleted.', 'bad');
+    }
+  });
+}
+
 function buildNoteCard(note) {
   const card = makeElement('article', 'inbox-note-card');
   const top = makeElement('div', 'inbox-note-top');
@@ -63,6 +94,14 @@ function buildNoteCard(note) {
   const right = makeElement('div', 'inbox-note-right');
   const dateSpan = makeElement('span', 'inbox-note-date', formatDate(note.created_at));
   right.appendChild(dateSpan);
+  const deleteBtn = makeElement('button', 'record-action record-action--delete', 'Delete');
+  deleteBtn.type = 'button';
+  deleteBtn.addEventListener('click', (event) => {
+    event.stopPropagation();
+    deleteNote(note.id);
+  });
+
+  right.appendChild(deleteBtn);
   right.appendChild(statusPill(note.status));
   if (note.reply_count > 0) {
     const replyBadge = makeElement('span', 'inbox-reply-count', String(note.reply_count));
@@ -375,7 +414,12 @@ function showNoteModal(note, noteData) {
   closeBtn.type = 'button';
   closeBtn.addEventListener('click', () => closeDialog(false));
 
-  foot.append(closeBtn, sendBtn);
+  const deleteBtn = makeElement('button', 'record-action record-action--delete', 'Delete');
+  deleteBtn.type = 'button';
+  deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteNote(note.id); });
+  const buttonRow = makeElement('div', 'note-modal__actions');
+  buttonRow.appendChild(deleteBtn);
+  foot.append(closeBtn, sendBtn, buttonRow);
   dialog.appendChild(foot);
 
   dialog.addEventListener('click', (event) => {
@@ -402,7 +446,48 @@ window.profileReady.then(() => {
     loadNotes();
     elements.filterCategory.addEventListener('change', renderNotes);
     elements.filterStatus.addEventListener('change', renderNotes);
-    elements.retryBtn.addEventListener('click', loadNotes);
+    document.getElementById('clear-resolved-btn').addEventListener('click', () => {
+    const fixedCount = summary ? (summary.counts_by_status['fixed'] || 0) : 0;
+    const declinedCount = summary ? (summary.counts_by_status['declined'] || 0) : 0;
+    const total = fixedCount + declinedCount;
+    if (total === 0) {
+      showNotice('No resolved notes to clear.', 'bad');
+      return;
+    }
+    openActionModal({
+      title: 'Clear resolved notes',
+      intro: `This will permanently remove ${total} note${total === 1 ? '' : 's'} that are currently Fixed (${fixedCount}) or Declined (${declinedCount}).`,
+      confirmLabel: 'Clear resolved',
+      onConfirm: async () => {
+        try {
+          const token = sessionStorage.getItem('lumina_access_token');
+          const response = await fetch(`${API}/feedback/inbox/clear-resolved/`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            return data;
+          }
+          if (!response.ok) return `Failed: ${response.status}`;
+        } catch (e) {
+          console.error('Clear resolved failed.', e);
+          return 'Could not clear resolved notes.';
+        }
+      }
+    }).then((done) => {
+      if (done && typeof done === 'object' && done.deleted > 0) {
+        notes = notes.filter((n) => n.status !== 'fixed' && n.status !== 'declined');
+        renderNotes();
+        loadSummary();
+        showNotice(`${done.deleted} note${done.deleted === 1 ? '' : 's'} cleared`, 'good');
+      } else if (done === false || typeof done === 'string') {
+        showNotice(typeof done === 'string' ? done : 'Notes could not be cleared.', 'bad');
+      }
+    });
+  });
+
+  elements.retryBtn.addEventListener('click', loadNotes);
     elements.logout.addEventListener('click', signOut);
   }
 });
