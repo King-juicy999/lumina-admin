@@ -16,6 +16,10 @@
           <span class="plate-brand__name">Lumina</span>
           <span class="plate-brand__tag">Admin Console</span>
         </a>
+        <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="menu-panel">
+          Menu
+          <span class="menu-dot" id="menu-dot" hidden></span>
+        </button>
         <nav class="plate-links" aria-label="Admin sections">
           <a href="index.html">Overview</a>
           <a href="materials.html">Materials</a>
@@ -25,6 +29,16 @@
           <a href="admins.html" aria-current="page" data-role="super" hidden>Admins</a>
           <a href="inbox.html" data-role="owner" hidden>Inbox <span class="inbox-badge" id="inbox-badge" hidden>0</span></a>
           <button type="button" class="plate-btn plate-btn--logout" id="logout-btn">Sign out</button>
+        </nav>
+        <nav id="menu-panel" class="menu-panel" hidden aria-label="Admin sections">
+          <a href="index.html" class="menu-item">Overview</a>
+          <a href="materials.html" class="menu-item">Materials</a>
+          <a href="users.html" class="menu-item">Users</a>
+          <a href="requests.html" class="menu-item" data-role="super" hidden>Ban requests</a>
+          <a href="recycle.html" class="menu-item" data-role="super" hidden>Recycle bin</a>
+          <a href="admins.html" class="menu-item" aria-current="page" data-role="super" hidden>Admins</a>
+          <a href="inbox.html" class="menu-item" data-role="owner" hidden>Inbox <span class="inbox-badge" id="inbox-badge-menu" hidden>0</span></a>
+          <button type="button" class="menu-logout" id="logout-btn-menu">Sign out</button>
         </nav>
       </div>
     </header>

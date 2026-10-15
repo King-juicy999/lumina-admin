@@ -92,12 +92,76 @@ function addHeaderRole() {
   nav.insertBefore(node, nav.firstChild);
 }
 
+function toggleMenu() {
+  const button = document.getElementById('menu-toggle');
+  const panel = document.getElementById('menu-panel');
+  if (!button || !panel) {
+    return;
+  }
+  const expanded = button.getAttribute('aria-expanded') === 'true';
+  if (expanded) {
+    panel.classList.remove('menu-panel--open');
+    panel.addEventListener('transitionend', () => {
+      panel.hidden = true;
+    }, { once: true });
+    setTimeout(() => {
+      panel.hidden = true;
+    }, 250);
+  } else {
+    panel.hidden = false;
+    requestAnimationFrame(() => {
+      panel.classList.add('menu-panel--open');
+    });
+  }
+  button.setAttribute('aria-expanded', String(!expanded));
+}
+
+function initMenu() {
+  const button = document.getElementById('menu-toggle');
+  const panel = document.getElementById('menu-panel');
+  if (!button || !panel) {
+    return;
+  }
+
+  button.addEventListener('click', toggleMenu);
+
+  panel.addEventListener('click', (event) => {
+    if (event.target.tagName === 'A') {
+      toggleMenu();
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!panel.hidden && !button.contains(event.target) && !panel.contains(event.target)) {
+      toggleMenu();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !panel.hidden) {
+      toggleMenu();
+      button.focus();
+    }
+  });
+
+  const logoutBtn = document.getElementById('logout-btn-menu');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      clearSession();
+      window.location.href = '/login.html';
+    });
+  }
+}
+
 window.profileReady = loadAndInitialize();
+initMenu();
 
 async function loadInboxBadge() {
   if (!window.profileData || !window.profileData.is_owner) return;
   const badge = document.getElementById('inbox-badge');
-  if (!badge) return;
+  const panelBadge = document.getElementById('inbox-badge-menu');
+  const menuDot = document.getElementById('menu-dot');
+  if (!badge && !panelBadge) return;
   try {
     const response = await fetch('https://william999.pythonanywhere.com/api/feedback/inbox/summary/', {
       headers: { Accept: 'application/json', Authorization: `Bearer ${sessionStorage.getItem(SESSION_ACCESS_KEY)}` }
@@ -106,10 +170,27 @@ async function loadInboxBadge() {
       const data = await response.json();
       const newCount = data.new_count || 0;
       if (newCount > 0) {
-        badge.textContent = String(newCount);
-        badge.hidden = false;
+        if (badge) {
+          badge.textContent = String(newCount);
+          badge.hidden = false;
+        }
+        if (panelBadge) {
+          panelBadge.textContent = String(newCount);
+          panelBadge.hidden = false;
+        }
+        if (menuDot) {
+          menuDot.hidden = false;
+        }
       } else {
-        badge.hidden = true;
+        if (badge) {
+          badge.hidden = true;
+        }
+        if (panelBadge) {
+          panelBadge.hidden = true;
+        }
+        if (menuDot) {
+          menuDot.hidden = true;
+        }
       }
     }
   } catch (e) {
