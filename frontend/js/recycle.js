@@ -399,14 +399,13 @@ async function runRestore(kind, id, item) {
   }
 }
 
-function deletePermanently(id, kind) {
-  const list = kind === 'users' ? recycleUsers : recycleMaterials;
-  const item = list.find((entry) => entry.id === id);
+function deletePermanently(id) {
+  const item = recycleUsers.find((entry) => entry.id === id);
   if (!item) return;
-  const url = kind === 'users' ? `${API}/accounts/users/${id}/permanent-delete/` : `${API}/materials/${id}/permanent-delete/`;
+  const url = `${API}/accounts/users/${id}/permanent-delete/`;
   openActionModal({
-    title: `Delete ${item.full_name || item.course_title || item.title} permanently`,
-    intro: `This removes ${item.matric_number || item.course_code || ''} from the system. It is irreversible and removes all uploads.`,
+    title: `Delete ${item.full_name} permanently`,
+    intro: `This removes ${item.matric_number} from the system. It is irreversible and removes all uploads.`,
     confirmLabel: 'Delete permanently',
     password: true,
     noteLabel: 'Owner password',
@@ -417,39 +416,30 @@ function deletePermanently(id, kind) {
           body: JSON.stringify({ password: (values.note || '').trim() })
         });
         if (response.ok) {
-          if (kind === 'users') {
-            recycleUsers = recycleUsers.filter((u) => u.id !== id);
-          } else {
-            recycleMaterials = recycleMaterials.filter((m) => m.id !== id);
-          }
-          if (activeTab === kind) render();
+          recycleUsers = recycleUsers.filter((u) => u.id !== id);
+          if (activeTab === 'users') render();
           populateCounts();
           showNotice('Deleted permanently.', 'good');
           return true;
         }
+        if (response.status === 403) {
+          return 'You cannot delete your own account.';
+        }
         const detail = await response.json().catch(() => ({}));
         const msg = detail.detail || detail.error || '';
-        if (msg.includes('Wrong password')) {
-          return false;
+        if (response.status === 400) {
+          if (msg.includes('Wrong password')) {
+            return 'That password is not right.';
+          }
+          if (msg.includes('Only banned accounts')) {
+            return 'Only banned accounts can be deleted.';
+          }
         }
-        if (msg.includes('Only banned accounts')) {
-          return false;
-        }
-        if (msg.includes('Not banned')) {
-          return false;
-        }
-        if (msg.includes('You cannot delete')) {
-          return false;
-        }
-        return false;
+        return 'The deletion did not go through. Try again.';
       } catch (e) {
         console.error('Permanent delete failed.', e);
         return false;
       }
-    },
-    validate: (parts, values) => {
-      if (!values.note || !(values.note || '').trim()) return 'Enter your owner password.';
-      return null;
     }
   });
 }
@@ -476,7 +466,7 @@ function handleRecordsClick(event) {
   }
   const id = Number(button.dataset.id);
   if (button.classList.contains('record-action--delete')) {
-    deletePermanently(id, 'users');
+    deletePermanently(id);
   } else {
     restoreItem(id, activeTab);
   }

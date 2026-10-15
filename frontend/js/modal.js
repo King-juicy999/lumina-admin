@@ -207,6 +207,12 @@ function openActionModal(config) {
             confirm.textContent = config.confirmLabel || 'Confirm';
             return;
           }
+          if (typeof done === 'string') {
+            error.textContent = done;
+            confirm.disabled = false;
+            confirm.textContent = config.confirmLabel || 'Confirm';
+            return;
+          }
           close(done && typeof done === 'object' ? { ...entered, ...done } : entered);
         },
         (error) => {
