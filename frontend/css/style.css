@@ -1799,6 +1799,8 @@ body[data-page='users'] .records-grid {
   font-family: var(--font-ui);
   font-size: 0.9rem;
   line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .inbox-note-right {
@@ -1806,7 +1808,8 @@ body[data-page='users'] .records-grid {
   flex-direction: column;
   align-items: flex-end;
   gap: 0.4rem;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .inbox-note-date {
