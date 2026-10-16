@@ -971,12 +971,14 @@ body[data-page='users'] .field-search {
 
 .action-modal {
   width: min(28rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
   padding: 0;
   background: var(--record);
   border: var(--edge-strong);
   border-radius: 6px;
   box-shadow: var(--shadow-lift);
   color: var(--ink);
+  overflow-y: auto;
 }
 
 .action-modal::backdrop {
@@ -1006,6 +1008,8 @@ body[data-page='users'] .field-search {
   flex-direction: column;
   gap: 0.85rem;
   padding: 1rem 1.3rem 0.4rem;
+  max-height: calc(100vh - 10rem);
+  overflow-y: auto;
 }
 
 .action-modal__row {
