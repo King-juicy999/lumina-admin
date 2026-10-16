@@ -61,7 +61,7 @@ function deleteNote(noteId, onDeleted) {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` }
         });
-        if (response.status === 204) return true;
+        if (response.status === 204) return { deleted: true };
         if (response.status === 404) return 'Note not found. Refresh the inbox.';
         if (response.status === 403) return 'You do not have permission to delete notes.';
         if (!response.ok) return 'The note could not be deleted. Try again.';
@@ -75,6 +75,7 @@ function deleteNote(noteId, onDeleted) {
       showNotice(typeof done === 'string' ? done : 'Note could not be deleted.', 'bad');
       return;
     }
+    if (!done || typeof done !== 'object' || !done.deleted) return;
     notes = notes.filter((n) => n.id !== noteId);
     renderNotes();
     loadSummary();
