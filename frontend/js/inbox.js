@@ -49,7 +49,7 @@ function previewText(message) {
   return message.split('\n')[0].substring(0, 120) || '(No message)';
 }
 
-function deleteNote(noteId) {
+function deleteNote(noteId, onDeleted) {
   openActionModal({
     title: 'Delete note',
     intro: 'This note and all its replies will be removed permanently. The student\'s receipt code will stop working.',
@@ -62,20 +62,25 @@ function deleteNote(noteId) {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.status === 204) return true;
-        if (!response.ok) return `Failed: ${response.status}`;
+        if (response.status === 404) return 'Note not found. Refresh the inbox.';
+        if (response.status === 403) return 'You do not have permission to delete notes.';
+        if (!response.ok) return 'The note could not be deleted. Try again.';
       } catch (e) {
         console.error('Delete failed.', e);
         return 'Could not delete note.';
       }
     }
   }).then((done) => {
-    if (done === true) {
-      notes = notes.filter((n) => n.id !== noteId);
-      renderNotes();
-      loadSummary();
-      showNotice('Note deleted', 'good');
-    } else if (done === false || typeof done === 'string') {
+    if (done === false || typeof done === 'string') {
       showNotice(typeof done === 'string' ? done : 'Note could not be deleted.', 'bad');
+      return;
+    }
+    notes = notes.filter((n) => n.id !== noteId);
+    renderNotes();
+    loadSummary();
+    showNotice('Note deleted', 'good');
+    if (onDeleted) {
+      onDeleted();
     }
   });
 }
@@ -416,7 +421,7 @@ function showNoteModal(note, noteData) {
 
   const deleteBtn = makeElement('button', 'record-action record-action--delete', 'Delete');
   deleteBtn.type = 'button';
-  deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteNote(note.id); });
+  deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteNote(note.id, () => closeDialog(false)); });
   const buttonRow = makeElement('div', 'note-modal__actions');
   buttonRow.appendChild(deleteBtn);
   foot.append(closeBtn, sendBtn, buttonRow);
@@ -469,7 +474,9 @@ window.profileReady.then(() => {
             const data = await response.json();
             return data;
           }
-          if (!response.ok) return `Failed: ${response.status}`;
+          if (response.status === 404) return 'Note not found. Refresh the inbox.';
+          if (response.status === 403) return 'You do not have permission to delete notes.';
+          return 'The notes could not be cleared. Try again.';
         } catch (e) {
           console.error('Clear resolved failed.', e);
           return 'Could not clear resolved notes.';
@@ -481,6 +488,8 @@ window.profileReady.then(() => {
         renderNotes();
         loadSummary();
         showNotice(`${done.deleted} note${done.deleted === 1 ? '' : 's'} cleared`, 'good');
+      } else if (done && typeof done === 'object' && done.deleted === 0) {
+        showNotice('No resolved notes to clear.', 'bad');
       } else if (done === false || typeof done === 'string') {
         showNotice(typeof done === 'string' ? done : 'Notes could not be cleared.', 'bad');
       }
