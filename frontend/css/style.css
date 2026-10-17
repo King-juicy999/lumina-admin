@@ -1791,8 +1791,7 @@ body[data-page='users'] .records-grid {
 }
 
 .inbox-note-middle {
-  flex: none;
-  width: 100%;
+  flex: 1;
   min-width: 0;
 }
 
@@ -2019,7 +2018,7 @@ body[data-page='users'] .records-grid {
 
   .inbox-note-middle {
     order: 3;
-    width: 100%;
+    flex: 1 1 100%;
     margin-top: 0.6rem;
   }
 
