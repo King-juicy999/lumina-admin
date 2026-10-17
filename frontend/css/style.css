@@ -97,7 +97,10 @@ body {
 }
 
 .resource-card,
-.inbox-note-card,
+.inbox-note-card {
+  animation: card-files-in 280ms var(--ease) backwards;
+}
+
 .activity-row {
   animation: card-files-in 280ms var(--ease) both;
 }
@@ -136,7 +139,7 @@ body {
   animation: modal-in 240ms var(--ease) both;
 }
 
-.admin-main {
+main {
   animation: page-fade-in 320ms var(--ease) both;
 }
 
@@ -1738,7 +1741,7 @@ body[data-page='users'] .records-grid {
   .activity-row,
   .login-card,
   .action-modal,
-  .admin-main {
+  main {
     animation: none;
   }
 
