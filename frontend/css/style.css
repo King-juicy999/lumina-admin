@@ -1791,7 +1791,8 @@ body[data-page='users'] .records-grid {
 }
 
 .inbox-note-middle {
-  flex: 1;
+  flex: none;
+  width: 100%;
   min-width: 0;
 }
 
