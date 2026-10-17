@@ -76,6 +76,70 @@ body {
   }
 }
 
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.resource-card,
+.inbox-note-card,
+.activity-row {
+  animation: card-files-in 280ms var(--ease) both;
+}
+
+.resource-card:nth-child(1) { animation-delay: 40ms; }
+.resource-card:nth-child(2) { animation-delay: 80ms; }
+.resource-card:nth-child(3) { animation-delay: 120ms; }
+.resource-card:nth-child(4) { animation-delay: 160ms; }
+.resource-card:nth-child(5) { animation-delay: 200ms; }
+.resource-card:nth-child(6) { animation-delay: 240ms; }
+.resource-card:nth-child(7) { animation-delay: 280ms; }
+.resource-card:nth-child(8) { animation-delay: 320ms; }
+.resource-card:nth-child(n+9) { animation-delay: 0; }
+
+.inbox-note-card:nth-child(1) { animation-delay: 40ms; }
+.inbox-note-card:nth-child(2) { animation-delay: 80ms; }
+.inbox-note-card:nth-child(3) { animation-delay: 120ms; }
+.inbox-note-card:nth-child(4) { animation-delay: 160ms; }
+.inbox-note-card:nth-child(5) { animation-delay: 200ms; }
+.inbox-note-card:nth-child(6) { animation-delay: 240ms; }
+.inbox-note-card:nth-child(7) { animation-delay: 280ms; }
+.inbox-note-card:nth-child(8) { animation-delay: 320ms; }
+.inbox-note-card:nth-child(n+9) { animation-delay: 0; }
+
+.activity-row:nth-child(1) { animation-delay: 40ms; }
+.activity-row:nth-child(2) { animation-delay: 80ms; }
+.activity-row:nth-child(3) { animation-delay: 120ms; }
+.activity-row:nth-child(4) { animation-delay: 160ms; }
+.activity-row:nth-child(5) { animation-delay: 200ms; }
+.activity-row:nth-child(6) { animation-delay: 240ms; }
+.activity-row:nth-child(7) { animation-delay: 280ms; }
+.activity-row:nth-child(8) { animation-delay: 320ms; }
+.activity-row:nth-child(n+9) { animation-delay: 0; }
+
+.action-modal {
+  animation: modal-in 240ms var(--ease) both;
+}
+
+.admin-main {
+  animation: page-fade-in 320ms var(--ease) both;
+}
+
 .container {
   width: min(1200px, calc(100% - 2rem));
   margin: 0 auto;
@@ -304,7 +368,7 @@ body {
   text-decoration: none;
   border-radius: 3px;
   cursor: pointer;
-  transition: background 180ms var(--ease);
+  transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease), transform 120ms var(--ease);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -813,6 +877,7 @@ body[data-page='users'] .field-search {
   font-size: 0.62rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease);
 }
 
 .material-badge--notes { color: var(--stamp); }
@@ -829,6 +894,7 @@ body[data-page='users'] .field-search {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease);
 }
 
 .pill--live {
@@ -1177,7 +1243,7 @@ body[data-page='users'] .field-search {
   font-size: 0.74rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease);
+  transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease), transform 120ms var(--ease);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1667,8 +1733,12 @@ body[data-page='users'] .records-grid {
 
 @media (prefers-reduced-motion: reduce) {
   .master-card,
+  .resource-card,
+  .inbox-note-card,
   .activity-row,
-  .login-card {
+  .login-card,
+  .action-modal,
+  .admin-main {
     animation: none;
   }
 
@@ -1722,6 +1792,7 @@ body[data-page='users'] .records-grid {
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.04em;
+  transition: background 180ms var(--ease), color 180ms var(--ease);
 }
 
 .inbox-summary {
