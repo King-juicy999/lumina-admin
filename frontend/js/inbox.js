@@ -1,4 +1,3 @@
-const API = 'https://william999.pythonanywhere.com/api';
 const INBOX_URL = `${API}/feedback/inbox/`;
 
 let notes = [];

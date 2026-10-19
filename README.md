@@ -71,10 +71,10 @@ A hard refresh picks up every change.
 
 ## The API
 
-Every page calls the deployed main Lumina backend. `API` is hardcoded at the top
-of `js/main.js`, `js/materials.js`, `js/users.js` and `js/login.js`. There is no
-environment variable and no config file, so pointing the console somewhere else
-means changing those four lines.
+Every page calls the deployed main Lumina backend. `API` is declared once in
+`frontend/js/config.js`, which every page loads before its own scripts, so
+pointing the console at another backend means editing that one line. There is
+no environment variable and no build step.
 
 It reads:
 

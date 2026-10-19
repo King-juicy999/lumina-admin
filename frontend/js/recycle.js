@@ -1,4 +1,3 @@
-const API = 'https://william999.pythonanywhere.com/api';
 const RECYCLE_SUMMARY_URL = `${API}/accounts/recycle/summary/`;
 const RECYCLE_USERS_URL = `${API}/accounts/recycle/users/`;
 const RECYCLE_MATERIALS_URL = `${API}/materials/recycle/`;

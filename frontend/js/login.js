@@ -1,4 +1,3 @@
-const API = 'https://william999.pythonanywhere.com/api';
 const LOGIN_URL = `${API}/accounts/login/`;
 const USERS_URL = `${API}/accounts/users/`;
 

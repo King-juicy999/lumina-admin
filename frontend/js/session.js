@@ -55,7 +55,7 @@ function revealOwnerControls() {
 
 async function loadAndInitialize() {
   try {
-    const response = await fetch('https://william999.pythonanywhere.com/api/accounts/admin/me/', {
+    const response = await fetch(`${API}/accounts/admin/me/`, {
       headers: { Accept: 'application/json', Authorization: `Bearer ${sessionStorage.getItem(SESSION_ACCESS_KEY)}` }
     });
     if (response.ok) {
@@ -163,7 +163,7 @@ async function loadInboxBadge() {
   const menuDot = document.getElementById('menu-dot');
   if (!badge && !panelBadge) return;
   try {
-    const response = await fetch('https://william999.pythonanywhere.com/api/feedback/inbox/summary/', {
+    const response = await fetch(`${API}/feedback/inbox/summary/`, {
       headers: { Accept: 'application/json', Authorization: `Bearer ${sessionStorage.getItem(SESSION_ACCESS_KEY)}` }
     });
     if (response.ok) {

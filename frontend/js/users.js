@@ -1,4 +1,3 @@
-const API = 'https://william999.pythonanywhere.com/api';
 const USERS_URL = `${API}/accounts/users/`;
 
 const LEVEL_NAMES = {

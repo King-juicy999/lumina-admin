@@ -1,4 +1,3 @@
-const API = 'https://william999.pythonanywhere.com/api';
 const REQUESTS_URL = `${API}/accounts/ban-requests/`;
 
 let banRequests = [];
