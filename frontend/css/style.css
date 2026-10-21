@@ -2139,3 +2139,21 @@ body[data-page='users'] .records-grid {
   background: #9a3028;
   border-color: #9a3028;
 }
+
+.wake-notice {
+  position: fixed;
+  top: 4.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 400;
+  max-width: min(28rem, calc(100vw - 2rem));
+  padding: 0.6rem 1rem;
+  background: var(--paper-deep);
+  border: 1px solid var(--ledger);
+  border-radius: 4px;
+  box-shadow: var(--shadow-card);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--ink);
+  pointer-events: none;
+}
