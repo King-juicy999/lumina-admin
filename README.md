@@ -79,11 +79,19 @@ no environment variable and no build step.
 It reads:
 
 ```
-https://william999.pythonanywhere.com/api
+https://lumina-api-3sfu.onrender.com/api
 ```
 
-The console itself is still served from localhost. Only the data comes from
-PythonAnywhere, so there is no local backend to start.
+The console is deployed on Vercel at
+https://lumina-admin-frontend.vercel.app and can also be served from localhost.
+Only the data comes from the Render backend, so there is no local backend to
+start.
+
+`frontend/js/wake.js` is loaded after `config.js` on every page. It holds every
+request to the API until the backend answers `/api/health/`, retrying for up to
+90 seconds and showing a short notice if it is slow. The console's Vercel
+address must be listed in `CORS_EXTRA_ORIGINS` on the backend, or the browser
+blocks the response.
 
 The two materials requests are:
 
