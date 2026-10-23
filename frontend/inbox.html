@@ -50,42 +50,64 @@
             <span class="band-rule" aria-hidden="true"></span>
             <span class="results-count" id="results-count">0 notes</span>
           </div>
-          <div class="inbox-summary" id="summary-row" hidden>
-            <div class="summary-chips" id="summary-chips"></div>
+          <div class="inbox-tabs" role="tablist" aria-label="Inbox contents">
+            <button role="tab" aria-selected="true" aria-controls="notes-panel" id="tab-notes" class="inbox-tab active">Notes</button>
+            <button role="tab" aria-selected="false" aria-controls="resets-panel" id="tab-resets" class="inbox-tab">Password resets <span class="inbox-tab__count" id="resets-count" hidden>0</span></button>
           </div>
-          <div class="control-bar" role="search">
-            <div class="field field-menu">
-              <label class="field-label" for="filter-category">Category</label>
-              <select id="filter-category" class="field-select">
-                <option value="">All categories</option>
-                <option value="Broken">Broken</option>
-                <option value="Confusing">Confusing</option>
-                <option value="Missing">Missing</option>
-                <option value="Idea">Idea</option>
-                <option value="General">General</option>
-              </select>
+
+          <div id="notes-panel" role="tabpanel" aria-labelledby="tab-notes">
+            <div class="inbox-summary" id="summary-row" hidden>
+              <div class="summary-chips" id="summary-chips"></div>
             </div>
-            <div class="field field-menu">
-              <label class="field-label" for="filter-status">Status</label>
-              <select id="filter-status" class="field-select">
-                <option value="">All statuses</option>
-                <option value="new">New</option>
-                <option value="seen">Seen</option>
-                <option value="planned">Planned</option>
-                <option value="fixed">Fixed</option>
-                <option value="declined">Declined</option>
-              </select>
+            <div class="control-bar" role="search">
+              <div class="field field-menu">
+                <label class="field-label" for="filter-category">Category</label>
+                <select id="filter-category" class="field-select">
+                  <option value="">All categories</option>
+                  <option value="Broken">Broken</option>
+                  <option value="Confusing">Confusing</option>
+                  <option value="Missing">Missing</option>
+                  <option value="Idea">Idea</option>
+                  <option value="General">General</option>
+                </select>
+              </div>
+              <div class="field field-menu">
+                <label class="field-label" for="filter-status">Status</label>
+                <select id="filter-status" class="field-select">
+                  <option value="">All statuses</option>
+                  <option value="new">New</option>
+                  <option value="seen">Seen</option>
+                  <option value="planned">Planned</option>
+                  <option value="fixed">Fixed</option>
+                  <option value="declined">Declined</option>
+                </select>
+              </div>
+              <button type="button" class="plate-btn plate-btn--delete" id="clear-resolved-btn" data-role="owner" hidden>Clear resolved</button>
             </div>
-            <button type="button" class="plate-btn plate-btn--delete" id="clear-resolved-btn" data-role="owner" hidden>Clear resolved</button>
+            <div class="loading-state" id="loading" hidden>Loading inbox</div>
+            <div class="error-state" id="error" hidden>
+              <span>Inbox could not be loaded.</span>
+              <button type="button" class="error-state__retry" id="retry-btn">Try again</button>
+            </div>
+            <div class="records-grid" id="notes-grid"></div>
+            <div class="empty-state" id="empty-state" hidden>
+              <p>No notes yet.</p>
+            </div>
           </div>
-          <div class="loading-state" id="loading" hidden>Loading inbox</div>
-          <div class="error-state" id="error" hidden>
-            <span>Inbox could not be loaded.</span>
-            <button type="button" class="error-state__retry" id="retry-btn">Try again</button>
-          </div>
-          <div class="records-grid" id="notes-grid"></div>
-          <div class="empty-state" id="empty-state" hidden>
-            <p>No notes yet.</p>
+
+          <div id="resets-panel" role="tabpanel" aria-labelledby="tab-resets" hidden>
+            <div class="reset-intro">
+              <p>These students asked for a new password. Reset one, then send it so only that matric number can collect it.</p>
+            </div>
+            <div class="loading-state" id="resets-loading" hidden>Loading requests</div>
+            <div class="error-state" id="resets-error" hidden>
+              <span>Password reset requests could not be loaded.</span>
+              <button type="button" class="error-state__retry" id="resets-retry">Try again</button>
+            </div>
+            <div class="records-grid" id="resets-grid"></div>
+            <div class="empty-state" id="resets-empty" hidden>
+              <p>No password reset requests.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -110,6 +132,7 @@
     <script src="js/hierarchy.js"></script>
     <script src="js/session.js"></script>
     <script src="js/modal.js"></script>
+    <script src="js/resets.js"></script>
     <script src="js/inbox.js"></script>
   </body>
 </html>

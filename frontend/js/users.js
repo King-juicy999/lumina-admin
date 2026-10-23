@@ -483,7 +483,7 @@ async function resetPassword(user) {
   const entered = await openActionModal({
     title: `Reset the password for ${user.full_name}`,
     intro: 'A new password is generated and saved straight away. The old one stops working, so send the new one to the student.',
-    confirmLabel: 'Generate password',
+    confirmLabel: 'Reset password',
     hideNote: true,
     onConfirm: async () => {
       try {

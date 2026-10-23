@@ -448,6 +448,8 @@ window.profileReady.then(() => {
   if (!window.profileData || !window.profileData.is_owner) {
     window.location.href = 'users.html';
   } else {
+    startResets();
+    loadResets();
     loadNotes();
     elements.filterCategory.addEventListener('change', renderNotes);
     elements.filterStatus.addEventListener('change', renderNotes);
