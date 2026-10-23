@@ -263,6 +263,11 @@ function buildFoot(user, isExpanded) {
     return foot;
   }
 
+  const profile = window.profileData || {};
+  if (profile.is_owner && !user.is_owner && user.id !== profile.id) {
+    foot.appendChild(actionButton('Reset password', 'password', user));
+  }
+
   const suspended = user.status === 'suspended';
   foot.appendChild(actionButton(suspended ? 'Lift suspension' : 'Suspend', suspended ? 'unsuspend' : 'suspend', user));
   foot.appendChild(actionButton(isSuperAdmin() ? 'Ban' : 'Request ban', isSuperAdmin() ? 'ban' : 'ban-requests', user));
@@ -299,6 +304,8 @@ async function loadUsers() {
     window.location.href = '/login.html';
     return;
   }
+
+  await window.profileReady;
 
   try {
     const response = await fetch(USERS_URL, {
@@ -367,6 +374,10 @@ function handleAction(event) {
   }
   if (button.dataset.action === 'suspend') {
     suspendUser(user);
+    return;
+  }
+  if (button.dataset.action === 'password') {
+    resetPassword(user);
     return;
   }
   banUser(user, button.dataset.action);
@@ -459,6 +470,108 @@ async function banUser(user, action) {
   if (entered && !asRequest) {
     removeUser(user.id);
   }
+}
+
+const RESET_FAILURES = {
+  400: 'That account cannot be reset here.',
+  403: 'You are not allowed to do that.',
+  404: 'That user no longer exists.',
+  other: 'The reset did not go through.'
+};
+
+async function resetPassword(user) {
+  const entered = await openActionModal({
+    title: `Reset the password for ${user.full_name}`,
+    intro: 'A new password is generated and saved straight away. The old one stops working, so send the new one to the student.',
+    confirmLabel: 'Generate password',
+    hideNote: true,
+    onConfirm: async () => {
+      try {
+        const response = await authorisedFetch(`${USERS_URL}${user.id}/reset-password/`, {
+          method: 'POST'
+        });
+        if (!response.ok) {
+          console.error('The password reset was refused.', response.status, await response.text());
+          showNotice(RESET_FAILURES[response.status] || RESET_FAILURES.other, 'bad');
+          return false;
+        }
+        return response.json();
+      } catch (error) {
+        console.error('The password reset did not complete.', error);
+        showNotice(RESET_FAILURES.other, 'bad');
+        return false;
+      }
+    }
+  });
+  if (entered && entered.password) {
+    showPasswordSlip(user, entered.password);
+  }
+}
+
+function showPasswordSlip(user, password) {
+  const opener = document.activeElement;
+  const dialog = makeElement('dialog', 'action-modal');
+  dialog.setAttribute('aria-labelledby', 'password-slip-title');
+
+  const head = makeElement('div', 'action-modal__head');
+  const title = makeElement('h2', 'action-modal__title', 'New password');
+  title.id = 'password-slip-title';
+  head.appendChild(title);
+  head.appendChild(
+    makeElement('p', 'action-modal__intro', `Send this to ${user.full_name} at ${user.matric_number}. It is not shown again.`)
+  );
+  dialog.appendChild(head);
+
+  const body = makeElement('div', 'action-modal__body');
+  const slip = makeElement('p', 'password-slip', password);
+  slip.tabIndex = 0;
+  body.appendChild(slip);
+  dialog.appendChild(body);
+
+  const foot = makeElement('div', 'action-modal__foot');
+  const copy = makeElement('button', 'plate-btn plate-btn--ghost', 'Copy');
+  copy.type = 'button';
+  const done = makeElement('button', 'plate-btn', 'Done');
+  done.type = 'button';
+  foot.append(copy, done);
+  dialog.appendChild(foot);
+
+  function close() {
+    dialog.remove();
+    document.removeEventListener('keydown', onKeydown);
+    if (opener && opener.focus) {
+      opener.focus();
+    }
+  }
+
+  function onKeydown(event) {
+    if (event.key === 'Escape') {
+      close();
+    }
+  }
+
+  copy.addEventListener('click', () => {
+    navigator.clipboard.writeText(password).then(
+      () => {
+        copy.textContent = 'Copied';
+      },
+      (error) => {
+        console.error('The password could not be copied.', error);
+        slip.focus();
+        window.getSelection().selectAllChildren(slip);
+      }
+    );
+  });
+  done.addEventListener('click', close);
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) {
+      close();
+    }
+  });
+  document.addEventListener('keydown', onKeydown);
+  document.body.appendChild(dialog);
+  dialog.showModal();
+  done.focus();
 }
 
 function updateUser(id, changes) {

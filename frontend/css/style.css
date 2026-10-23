@@ -1113,6 +1113,27 @@ body[data-page='users'] .field-search {
   cursor: progress;
 }
 
+.password-slip {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border: 1px dashed color-mix(in srgb, var(--brass) 55%, var(--ledger));
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--brass) 8%, var(--record));
+  color: var(--ink);
+  font-family: var(--font-record);
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  text-align: center;
+  word-break: break-all;
+  user-select: all;
+}
+
+.password-slip:focus-visible {
+  outline: none;
+  border-color: var(--stamp);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--stamp) 18%, transparent);
+}
+
 .notice {
   position: fixed;
   left: 1rem;
@@ -1770,6 +1791,25 @@ body[data-page='users'] .records-grid {
 .record-action--make-admin:active {
   background: color-mix(in srgb, var(--stamp) 20%, var(--record));
   border-color: var(--stamp-deep);
+}
+
+.record-action--password {
+  border-color: var(--brass);
+  color: var(--brass);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .record-action--password:hover {
+    background: color-mix(in srgb, var(--brass) 14%, var(--record));
+    border-color: var(--brass);
+    color: var(--brass);
+  }
+}
+
+.record-action--password:active {
+  background: color-mix(in srgb, var(--brass) 20%, var(--record));
+  border-color: var(--brass);
+  color: var(--brass);
 }
 
 @media (max-width: 640px) {
