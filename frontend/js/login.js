@@ -31,7 +31,7 @@ function setBusy(busy) {
 }
 
 function unreachableMessage() {
-  return 'The server could not be reached. Check your connection and try again.';
+  return 'Lumina could not be reached. Check your connection and try again.';
 }
 
 function genericMessage() {

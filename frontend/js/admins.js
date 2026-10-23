@@ -195,19 +195,21 @@ async function loadStudents() {
   }
 }
 
+const ROLE_FAILURES = {
+  400: 'That change is not possible for this account.',
+  403: 'You are not allowed to do that.',
+  404: 'That account no longer exists.',
+  other: 'That change did not go through.'
+};
+
 async function changeRole(action, id) {
   try {
     const response = await authorisedFetch(`${USERS_URL}${id}/${action}/`, {
       method: 'POST'
     });
     if (!response.ok) {
-      const text = await response.text();
-      let msg = 'That change did not go through.';
-      try {
-        const data = JSON.parse(text);
-        msg = data.detail || data.message || msg;
-      } catch (_) {}
-      showNotice(msg, 'bad');
+      console.error('The role change was refused.', response.status, await response.text());
+      showNotice(ROLE_FAILURES[response.status] || ROLE_FAILURES.other, 'bad');
       return false;
     }
     showNotice('Updated.', 'good');

@@ -3,7 +3,7 @@ const WAKE_RETRY_MS = 3000;
 const WAKE_MAX_WAIT_MS = 90000;
 const WAKE_FRESH_MS = 240000;
 const WAKE_READY_KEY = 'lumina_admin_backend_ready';
-const WAKE_NOTICE_TEXT = 'The server is taking a bit longer than usual. Please wait a moment.';
+const WAKE_NOTICE_TEXT = 'Lumina is taking a bit longer than usual. Please wait a moment.';
 
 const nativeFetch = window.fetch.bind(window);
 
