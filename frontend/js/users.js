@@ -475,7 +475,7 @@ async function banUser(user, action) {
 const RESET_FAILURES = {
   400: 'That account cannot be reset here.',
   403: 'You are not allowed to do that.',
-  404: 'That user no longer exists.',
+  404: 'The backend does not offer this yet. It needs the latest code from the Lumina repo deployed before a password can be generated.',
   other: 'The reset did not go through.'
 };
 
