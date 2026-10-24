@@ -111,6 +111,112 @@
         </div>
       </section>
 
+      <section class="owner-dash" id="owner-dash" hidden aria-label="Owner dashboard">
+        <div class="container">
+          <div class="dash-grid">
+
+            <article class="dash-tile dash-tile--hero" id="dash-hero">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Records on file</span>
+                <span class="dash-tile__ref">LUMINA / LEDGER</span>
+              </div>
+              <div class="dash-body">
+                <h1 class="dash-hero__greeting" id="dash-greeting"></h1>
+                <p class="dash-hero__figure" id="dash-figure">0</p>
+                <p class="dash-hero__note" id="dash-hero-note"></p>
+                <div class="dash-hero__figures" id="dash-hero-figures"></div>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--stack" id="dash-waiting">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Waiting on you</span>
+                <span class="dash-tile__ref">QUEUE</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-stack" id="dash-stack"></div>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--gauge" id="dash-server">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Response time</span>
+                <span class="dash-tile__ref">LIVE CHECK</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-gauge" id="dash-gauge"></div>
+                <p class="dash-gauge__line" id="dash-gauge-line" aria-live="polite"></p>
+                <button type="button" class="dash-check" id="dash-check">Check again</button>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--chart" id="dash-signups">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Students joined</span>
+                <span class="dash-tile__ref">CUMULATIVE</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-ranges" id="dash-ranges" role="group" aria-label="Chart range"></div>
+                <div class="dash-chart" id="dash-chart"></div>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--roles" id="dash-roles">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Who is on Lumina</span>
+                <span class="dash-tile__ref">ROLES</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-roles" id="dash-roles-body"></div>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--accent" id="dash-inbox">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Inbox</span>
+                <span class="dash-tile__ref">UNREAD</span>
+              </div>
+              <div class="dash-body">
+                <p class="dash-accent__figure" id="dash-inbox-figure">0</p>
+                <p class="dash-accent__note">new notes to look at</p>
+                <div class="dash-accent__bars" id="dash-inbox-bars"></div>
+                <a class="dash-accent__link" href="inbox.html">Open inbox</a>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--recycle" id="dash-recycle">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Recycle bin</span>
+                <span class="dash-tile__ref">REMOVED</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-pair" id="dash-recycle-body"></div>
+                <a class="dash-link" href="recycle.html">Open recycle bin</a>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--latest" id="dash-latest">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Latest sign ups</span>
+                <span class="dash-tile__ref">NEWEST FIRST</span>
+              </div>
+              <div class="dash-body">
+                <ul class="dash-latest" id="dash-latest-list"></ul>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
     </main>
 
     <footer class="colophon">
@@ -128,5 +234,6 @@
     <script src="js/wake.js"></script>
     <script src="js/session.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/dashboard.js"></script>
   </body>
 </html>
