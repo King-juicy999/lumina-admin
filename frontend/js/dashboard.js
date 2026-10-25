@@ -46,6 +46,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 const CHART_WIDTH = 640;
 const CHART_HEIGHT = 220;
 const CHART_PAD = { top: 18, right: 18, bottom: 34, left: 46 };
+const CODE_SPLIT = /\s*?([A-Z]{2,3})\s*(\d+)$/;
 
 function dash(name) {
   return dashAdmin ? name + '-admin' : name;
@@ -700,7 +701,7 @@ function buildDownloadItem(item) {
   top.appendChild(code);
   const type = makeElement('div', 'dash-download-item__type', item.material_type);
   const level = makeElement('div', 'dash-download-item__level', item.level);
-  const downloads = makeElement('div', 'dash-download-item__downloads', String(item.download_count));
+  const downloads = makeElement('div', 'dash-download-item__downloads', String(Number(item.download_count) || 0));
   const meta = makeElement('div', 'dash-download-item__meta');
   meta.appendChild(type);
   meta.appendChild(level);
@@ -715,8 +716,6 @@ function formatCourseCode(value) {
   return (value || '').trim().toUpperCase().replace(CODE_SPLIT, '$1 $2');
 }
 
-const CODE_SPLIT = /\s*?([A-Z]{2,3})\s*(\d+)$/;
-
 async function loadSignups() {
   const tile = document.getElementById(dash('dash-signups'));
   if (!tile) return;
@@ -724,10 +723,8 @@ async function loadSignups() {
   try {
     const users = await loadUsers();
     const students = (Array.isArray(users) ? users : [])
-      .filter((user) => user && user.role === 'student')
-      .map((user) => ({ user }));
-    dashChart = dashChart || {};
-    dashChart.users = students;
+      .filter((user) => user && user.role === 'student');
+    dashChart = { users: students, points: [], geometry: null, hover: -1 };
     paintChart();
     endTile(tile);
   } catch (error) {
@@ -891,31 +888,14 @@ async function loadLatest() {
 }
 
 function bootDashboard() {
-  const role = getRole();
-  const dash = document.getElementById('owner-dash');
-  const adminDash = document.getElementById('admin-dash');
-  if (role === 'super_admin') {
-    if (adminDash) adminDash.hidden = true;
-    if (dash) dash.hidden = false;
-    return;
-  }
-  dashAdmin = role === 'admin';
-  if (dashAdmin) {
-    dashQueueOrder = ['added', 'joined', 'suspended'];
-    if (dash) dash.hidden = true;
-    if (adminDash) adminDash.hidden = false;
-  } else {
-    if (adminDash) adminDash.hidden = true;
-    if (dash) dash.hidden = false;
-  }
   renderGreeting();
   buildQueue();
   gaugeParts(document.getElementById(dashAdmin ? 'dash-gauge-admin' : 'dash-gauge'));
   renderRanges();
   const chartHost = document.getElementById(dashAdmin ? 'dash-chart-admin' : 'dash-chart');
   document.getElementById(dashAdmin ? 'dash-check-admin' : 'dash-check').addEventListener('click', loadServer);
-  document.getElementById(chartHost).addEventListener('keydown', handleChartKeys);
-  document.getElementById(chartHost).addEventListener('blur', () => {
+  chartHost.addEventListener('keydown', handleChartKeys);
+  chartHost.addEventListener('blur', () => {
     if (dashChart && dashChart.hide) {
       dashChart.hide();
     }
@@ -950,6 +930,7 @@ window.profileReady.then(() => {
       }
     }
     dashboard.hidden = false;
+    dashAdmin = false;
     bootDashboard();
     return;
   }
@@ -967,6 +948,8 @@ window.profileReady.then(() => {
     if (dashboard) {
       dashboard.hidden = true;
     }
+    dashAdmin = true;
+    dashQueueOrder = ['added', 'joined', 'suspended'];
     bootDashboard();
   }
 });
