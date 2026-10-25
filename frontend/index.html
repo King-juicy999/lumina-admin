@@ -217,6 +217,86 @@
         </div>
       </section>
 
+      <section class="admin-dash" id="admin-dash" hidden aria-label="Admin dashboard">
+        <div class="container">
+          <div class="dash-grid admin-mode">
+
+            <article class="dash-tile dash-tile--hero" id="dash-hero-admin">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Records on file</span>
+                <span class="dash-tile__ref">LUMINA / LEDGER</span>
+              </div>
+              <div class="dash-body">
+                <h1 class="dash-hero__greeting" id="dash-greeting-admin"></h1>
+                <p class="dash-hero__figure" id="dash-figure-admin">0</p>
+                <p class="dash-hero__note" id="dash-hero-note-admin"></p>
+                <div class="dash-hero__figures" id="dash-hero-figures-admin"></div>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--stack" id="dash-waiting-admin">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Needs a look for admins</span>
+                <span class="dash-tile__ref">QUEUE</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-stack" id="dash-stack-admin"></div>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--gauge" id="dash-server-admin">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Response time</span>
+                <span class="dash-tile__ref">LIVE CHECK</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-gauge" id="dash-gauge-admin"></div>
+                <p class="dash-gauge__line" id="dash-gauge-line-admin" aria-live="polite"></p>
+                <button type="button" class="dash-check" id="dash-check-admin">Check again</button>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--chart" id="dash-signups-admin">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Students joined</span>
+                <span class="dash-tile__ref">CUMULATIVE</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-ranges" id="dash-ranges-admin" role="group" aria-label="Chart range"></div>
+                <div class="dash-chart" id="dash-chart-admin"></div>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--downloads" id="dash-downloaded">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Most downloaded</span>
+                <span class="dash-tile__ref">TOP DOWNLOADS</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-most-downloaded" id="dash-most-downloaded"></div>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--latest" id="dash-latest-admin">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Latest sign ups</span>
+                <span class="dash-tile__ref">NEWEST FIRST</span>
+              </div>
+              <div class="dash-body">
+                <ul class="dash-latest" id="dash-latest-list-admin"></ul>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
     </main>
 
     <footer class="colophon">

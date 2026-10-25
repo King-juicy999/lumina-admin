@@ -36,15 +36,30 @@ const DASH_QUEUE = [
   { id: 'notes', label: 'Feedback notes', note: 'new since your last look', href: 'inbox.html', page: 'Inbox', value: 0 }
 ];
 
+const DASH_ADMIN_QUEUE = [
+  { id: 'added', label: 'Added this week', note: 'new in the catalogue', href: 'materials.html', page: 'Materials', value: 0 },
+  { id: 'joined', label: 'Joined this week', note: 'sign ups this week', href: 'users.html', page: 'Users', value: 0 },
+  { id: 'suspended', label: 'Suspended students', note: 'access held', href: 'users.html', page: 'Users', value: 0 }
+];
+
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const CHART_WIDTH = 640;
 const CHART_HEIGHT = 220;
 const CHART_PAD = { top: 18, right: 18, bottom: 34, left: 46 };
 
+function dash(name) {
+  return dashAdmin ? name + '-admin' : name;
+}
+
+function queueEntries() {
+  return dashAdmin ? DASH_ADMIN_QUEUE : DASH_QUEUE;
+}
+
 let dashUsers = null;
 let dashRange = '1W';
 let dashQueueOrder = ['notes', 'resets', 'bans'];
 let dashChart = null;
+let dashAdmin = false;
 
 function svgNode(tag, attributes) {
   const node = document.createElementNS(SVG_NS, tag);
@@ -176,8 +191,14 @@ function loadUsers() {
   return dashUsers;
 }
 
+function joinedRecently(user) {
+  const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  const stamp = new Date(user.date_joined).getTime();
+  return Number.isFinite(stamp) && Date.now() - stamp < oneWeek;
+}
+
 function renderGreeting() {
-  const node = document.getElementById('dash-greeting');
+  const node = document.getElementById(dash('dash-greeting'));
   const profile = window.profileData || {};
   node.textContent = `${greetingFor(new Date().getHours())}, ${firstNameOf(profile.full_name)}.`;
 }
@@ -190,12 +211,28 @@ function heroFigure(label, value, tone) {
 }
 
 async function loadHero() {
-  const tile = document.getElementById('dash-hero');
-  const figure = document.getElementById('dash-figure');
-  const note = document.getElementById('dash-hero-note');
-  const figures = document.getElementById('dash-hero-figures');
+  const tile = document.getElementById(dash('dash-hero'));
+  const figure = document.getElementById(dash('dash-figure'));
+  const note = document.getElementById(dash('dash-hero-note'));
+  const figures = document.getElementById(dash('dash-hero-figures'));
   beginTile(tile);
   try {
+    if (dashAdmin) {
+      const stats = await readJson(DASH_STATS_URL);
+      const visible = Number(stats.total_materials) || 0;
+      const added = Number(stats.materials_this_week) || 0;
+      const programs = Number(stats.program_count) || 0;
+      const hidden = typeof stats.hidden_materials === 'number' ? stats.hidden_materials : null;
+      countUp(figure, visible);
+      note.textContent = 'The catalogue as it stands.';
+      figures.replaceChildren(
+        heroFigure('Added this week', added, 'stamp'),
+        heroFigure('Programmes', programs, 'neutral'),
+        heroFigure('Hidden', hidden === null ? 'Not tracked' : hidden, 'red')
+      );
+      endTile(tile);
+      return;
+    }
     const results = await Promise.all([readJson(DASH_STATS_URL), readJson(DASH_RECYCLE_URL)]);
     const stats = results[0] || {};
     const recycle = results[1] || {};
@@ -216,10 +253,11 @@ async function loadHero() {
 }
 
 function renderQueue() {
-  const track = document.getElementById('dash-stack');
+  const track = document.getElementById(dash('dash-stack'));
+  const entries = queueEntries();
   dashQueueOrder.forEach((id, depth) => {
     const card = track.querySelector(`[data-card="${id}"]`);
-    const entry = DASH_QUEUE.find((item) => item.id === id);
+    const entry = entries.find((item) => item.id === id);
     if (!card || !entry) return;
     const front = depth === dashQueueOrder.length - 1;
     card.style.setProperty('--depth', String(dashQueueOrder.length - 1 - depth));
@@ -238,8 +276,8 @@ function renderQueue() {
 }
 
 function buildQueue() {
-  const track = document.getElementById('dash-stack');
-  const cards = DASH_QUEUE.map((entry) => {
+  const track = document.getElementById(dash('dash-stack'));
+  const cards = queueEntries().map((entry) => {
     const card = makeElement('a', 'dash-card');
     card.href = entry.href;
     card.dataset.card = entry.id;
@@ -264,9 +302,24 @@ function buildQueue() {
 }
 
 async function loadQueue() {
-  const tile = document.getElementById('dash-waiting');
+  const tile = document.getElementById(dash('dash-waiting'));
   beginTile(tile);
   try {
+    if (dashAdmin) {
+      const users = await loadUsers();
+      const stats = await readJson(DASH_STATS_URL);
+      const list = Array.isArray(users) ? users : [];
+      const suspended = list.filter((user) => user && user.status === 'suspended').length;
+      const joined = list.filter((user) => user && user.role === 'student' && joinedRecently(user)).length;
+      const added = Number(stats.materials_this_week) || 0;
+      const values = { suspended: suspended, joined: joined, added: added };
+      for (const entry of queueEntries()) {
+        entry.value = Number(values[entry.id]) || 0;
+      }
+      renderQueue();
+      endTile(tile);
+      return;
+    }
     const results = await Promise.all([
       readJson(DASH_BANS_URL),
       readJson(DASH_RESETS_URL),
@@ -312,8 +365,7 @@ function gaugeVerdict(elapsed) {
   return 'Slow';
 }
 
-function gaugeParts() {
-  const host = document.getElementById('dash-gauge');
+function gaugeParts(host) {
   const existing = host.querySelector('.dash-gauge__arc');
   if (existing) {
     return { host, arc: existing, needle: host.querySelector('.dash-gauge__needle') };
@@ -342,22 +394,22 @@ function gaugeParts() {
   return { host, arc, needle };
 }
 
-function paintGauge(elapsed) {
-  const parts = gaugeParts();
+function paintGauge(elapsed, host) {
+  const parts = gaugeParts(host);
   const ratio = Math.min(1, Math.max(0, elapsed / DASH_GAUGE_MAX_MS));
   parts.arc.setAttribute('stroke-dashoffset', String(100 - ratio * 100));
   parts.needle.style.transform = `rotate(${-90 + ratio * 180}deg)`;
 }
 
 async function loadServer() {
-  const tile = document.getElementById('dash-server');
-  const line = document.getElementById('dash-gauge-line');
+  const tile = document.getElementById(dash('dash-server'));
+  const line = document.getElementById(dash('dash-gauge-line'));
   beginTile(tile);
   line.textContent = 'Checking now.';
-  gaugeParts();
+  gaugeParts(tile);
   try {
     const elapsed = await measureHealth();
-    paintGauge(elapsed);
+    paintGauge(elapsed, tile);
     line.textContent = `${gaugeVerdict(elapsed)}. The reply came back in ${elapsed} ms.`;
     endTile(tile);
   } catch (error) {
@@ -424,7 +476,8 @@ function chartGeometry(points) {
 }
 
 function renderChart() {
-  const host = document.getElementById('dash-chart');
+  const host = document.getElementById(dash('dash-chart'));
+  if (!host) return;
   if (!dashChart) return;
   const points = dashChart.points;
   const geometry = dashChart.geometry;
@@ -592,7 +645,8 @@ function handleChartKeys(event) {
 }
 
 function renderRanges() {
-  const host = document.getElementById('dash-ranges');
+  const host = document.getElementById(dash('dash-ranges'));
+  if (!host) return;
   host.replaceChildren(
     ...DASH_RANGES.map((range) => {
       const button = makeElement('button', 'dash-range', range.label);
@@ -618,12 +672,62 @@ function paintChart() {
   renderChart();
 }
 
+async function loadMostDownloaded() {
+  const tile = document.getElementById('dash-downloaded');
+  const list = document.getElementById('dash-most-downloaded');
+  beginTile(tile);
+  try {
+    const response = await readJson(`${API}/materials/?sort=download`);
+    const items = (Array.isArray(response) ? response : (response.results || [])).slice(0, 4);
+
+    if (items.length === 0) {
+      list.replaceChildren(makeElement('p', 'dash-most-downloaded__empty', 'No materials downloaded'));
+    } else {
+      list.replaceChildren(...items.map(buildDownloadItem));
+    }
+
+    endTile(tile);
+  } catch (error) {
+    failTile(tile, 'The most downloaded materials could not be read.', error, loadMostDownloaded);
+  }
+}
+
+function buildDownloadItem(item) {
+  const title = makeElement('div', 'dash-download-item__title', item.course_title || item.title);
+  const code = makeElement('div', 'dash-download-item__code', formatCourseCode(item.course_code));
+  const top = makeElement('div', 'dash-download-item__top');
+  top.appendChild(title);
+  top.appendChild(code);
+  const type = makeElement('div', 'dash-download-item__type', item.material_type);
+  const level = makeElement('div', 'dash-download-item__level', item.level);
+  const downloads = makeElement('div', 'dash-download-item__downloads', String(item.download_count));
+  const meta = makeElement('div', 'dash-download-item__meta');
+  meta.appendChild(type);
+  meta.appendChild(level);
+  meta.appendChild(downloads);
+  const card = makeElement('div', 'dash-download-item');
+  card.appendChild(top);
+  card.appendChild(meta);
+  return card;
+}
+
+function formatCourseCode(value) {
+  return (value || '').trim().toUpperCase().replace(CODE_SPLIT, '$1 $2');
+}
+
+const CODE_SPLIT = /\s*?([A-Z]{2,3})\s*(\d+)$/;
+
 async function loadSignups() {
-  const tile = document.getElementById('dash-signups');
+  const tile = document.getElementById(dash('dash-signups'));
+  if (!tile) return;
   beginTile(tile);
   try {
     const users = await loadUsers();
-    dashChart = { users: Array.isArray(users) ? users : [], points: [], geometry: null, hover: -1 };
+    const students = (Array.isArray(users) ? users : [])
+      .filter((user) => user && user.role === 'student')
+      .map((user) => ({ user }));
+    dashChart = dashChart || {};
+    dashChart.users = students;
     paintChart();
     endTile(tile);
   } catch (error) {
@@ -632,7 +736,7 @@ async function loadSignups() {
 }
 
 function renderRoles(users) {
-  const host = document.getElementById('dash-roles-body');
+  const host = document.getElementById(dash('dash-roles-body'));
   const counts = DASH_ROLES.map((role) => ({
     ...role,
     value: users.filter((user) => user.role === role.id).length
@@ -668,7 +772,7 @@ function renderRoles(users) {
 }
 
 async function loadRoles() {
-  const tile = document.getElementById('dash-roles');
+  const tile = document.getElementById(dash('dash-roles'));
   beginTile(tile);
   try {
     const users = await loadUsers();
@@ -680,8 +784,8 @@ async function loadRoles() {
 }
 
 function renderInbox(summary) {
-  const figure = document.getElementById('dash-inbox-figure');
-  const bars = document.getElementById('dash-inbox-bars');
+  const figure = document.getElementById(dash('dash-inbox-figure'));
+  const bars = document.getElementById(dash('dash-inbox-bars'));
   const counts = summary.counts_by_status || {};
   const newCount = Number(summary.new_count) || 0;
   countUp(figure, newCount);
@@ -711,7 +815,7 @@ function renderInbox(summary) {
 }
 
 async function loadInbox() {
-  const tile = document.getElementById('dash-inbox');
+  const tile = document.getElementById(dash('dash-inbox'));
   beginTile(tile);
   try {
     const summary = await readJson(DASH_INBOX_URL);
@@ -723,7 +827,7 @@ async function loadInbox() {
 }
 
 function renderRecycle(summary) {
-  const host = document.getElementById('dash-recycle-body');
+  const host = document.getElementById(dash('dash-recycle-body'));
   const build = (label, value) => {
     const cell = makeElement('div', 'dash-pair__cell');
     cell.appendChild(makeElement('span', 'dash-pair__value', formatNumber(Number(value) || 0)));
@@ -734,7 +838,7 @@ function renderRecycle(summary) {
 }
 
 async function loadRecycle() {
-  const tile = document.getElementById('dash-recycle');
+  const tile = document.getElementById(dash('dash-recycle'));
   beginTile(tile);
   try {
     const summary = await readJson(DASH_RECYCLE_URL);
@@ -746,7 +850,7 @@ async function loadRecycle() {
 }
 
 function renderLatest(users) {
-  const host = document.getElementById('dash-latest-list');
+  const host = document.getElementById(dash('dash-latest-list'));
   const recent = [...users]
     .filter((user) => Number.isFinite(new Date(user.date_joined).getTime()))
     .sort((a, b) => new Date(b.date_joined) - new Date(a.date_joined))
@@ -774,11 +878,12 @@ function renderLatest(users) {
 }
 
 async function loadLatest() {
-  const tile = document.getElementById('dash-latest');
+  const tile = document.getElementById(dash('dash-latest'));
   beginTile(tile);
   try {
     const users = await loadUsers();
-    renderLatest(Array.isArray(users) ? users : []);
+    const list = Array.isArray(users) ? users : [];
+    renderLatest(dashAdmin ? list.filter((user) => user && user.role === 'student') : list);
     endTile(tile);
   } catch (error) {
     failTile(tile, 'The latest accounts could not be read.', error, loadLatest);
@@ -786,13 +891,31 @@ async function loadLatest() {
 }
 
 function bootDashboard() {
+  const role = getRole();
+  const dash = document.getElementById('owner-dash');
+  const adminDash = document.getElementById('admin-dash');
+  if (role === 'super_admin') {
+    if (adminDash) adminDash.hidden = true;
+    if (dash) dash.hidden = false;
+    return;
+  }
+  dashAdmin = role === 'admin';
+  if (dashAdmin) {
+    dashQueueOrder = ['added', 'joined', 'suspended'];
+    if (dash) dash.hidden = true;
+    if (adminDash) adminDash.hidden = false;
+  } else {
+    if (adminDash) adminDash.hidden = true;
+    if (dash) dash.hidden = false;
+  }
   renderGreeting();
   buildQueue();
-  gaugeParts();
+  gaugeParts(document.getElementById(dashAdmin ? 'dash-gauge-admin' : 'dash-gauge'));
   renderRanges();
-  document.getElementById('dash-check').addEventListener('click', loadServer);
-  document.getElementById('dash-chart').addEventListener('keydown', handleChartKeys);
-  document.getElementById('dash-chart').addEventListener('blur', () => {
+  const chartHost = document.getElementById(dashAdmin ? 'dash-chart-admin' : 'dash-chart');
+  document.getElementById(dashAdmin ? 'dash-check-admin' : 'dash-check').addEventListener('click', loadServer);
+  document.getElementById(chartHost).addEventListener('keydown', handleChartKeys);
+  document.getElementById(chartHost).addEventListener('blur', () => {
     if (dashChart && dashChart.hide) {
       dashChart.hide();
     }
@@ -801,27 +924,49 @@ function bootDashboard() {
   loadQueue();
   loadServer();
   loadSignups();
-  loadRoles();
-  loadInbox();
-  loadRecycle();
+  if (!dashAdmin) {
+    loadRoles();
+    loadInbox();
+    loadRecycle();
+  }
   loadLatest();
+  if (dashAdmin) {
+    loadMostDownloaded();
+  }
 }
 
 window.profileReady.then(() => {
   const profile = window.profileData;
-  if (!profile || !profile.is_owner) {
-    return;
-  }
   const dashboard = document.getElementById('owner-dash');
-  if (!dashboard) {
+  const admin = document.getElementById('admin-dash');
+  if (profile && profile.is_owner) {
+    if (!dashboard) {
+      return;
+    }
+    for (const selector of ['.desk', '.lp-stats', '.lp-section--deep']) {
+      const section = document.querySelector(selector);
+      if (section) {
+        section.hidden = true;
+      }
+    }
+    dashboard.hidden = false;
+    bootDashboard();
     return;
   }
-  for (const selector of ['.desk', '.lp-stats', '.lp-section--deep']) {
-    const section = document.querySelector(selector);
-    if (section) {
-      section.hidden = true;
-    }
+  if (isSuperAdmin()) {
+    return;
   }
-  dashboard.hidden = false;
-  bootDashboard();
+  if (admin) {
+    for (const selector of ['.desk', '.lp-stats', '.lp-section--deep']) {
+      const section = document.querySelector(selector);
+      if (section) {
+        section.hidden = true;
+      }
+    }
+    admin.hidden = false;
+    if (dashboard) {
+      dashboard.hidden = true;
+    }
+    bootDashboard();
+  }
 });
