@@ -1,6 +1,7 @@
 const REQUESTS_URL = `${API}/accounts/ban-requests/`;
 
 let banRequests = [];
+let lastRequestSignature = '';
 
 const requestElements = {
   records: document.getElementById('records'),
@@ -38,6 +39,11 @@ function initials(name) {
 }
 
 function populateRequestList(requests) {
+  const signature = JSON.stringify(requests);
+  if (signature === lastRequestSignature) {
+    return;
+  }
+  lastRequestSignature = signature;
   requestElements.records.replaceChildren(...requests.map(buildRequestCard));
   const total = requests.length;
   requestElements.count.textContent = `${total} ${total === 1 ? 'request' : 'requests'}`;
@@ -64,14 +70,21 @@ function runAction(url, body) {
       btn.textContent = 'Working...';
     }
     authorisedFetch(url, { method: 'POST', body: JSON.stringify(body) })
-      .then((response) => {
+      .then(async (response) => {
         if (btn) {
           btn.disabled = false;
           btn.textContent = confirmText;
         }
         if (!response.ok) {
-          console.error('The ban decision was refused.', response.status);
-          showNotice(messages[response.status] || messages.other, 'bad');
+          if (response.status === 409) {
+            const data = await response.json().catch(() => ({}));
+            console.error('The ban request was already decided.', response.status, data);
+            showNotice(`Already decided by ${data.decided_by_name || 'someone else'}`, 'bad');
+            loadBanRequests();
+          } else {
+            console.error('The ban decision was refused.', response.status);
+            showNotice(messages[response.status] || messages.other, 'bad');
+          }
           resolve(false);
           return;
         }
@@ -201,3 +214,4 @@ requestElements.records.addEventListener('click', handleRequestAction);
 requestElements.logout.addEventListener('click', signOut);
 
 loadBanRequests();
+startPolling(loadBanRequests);

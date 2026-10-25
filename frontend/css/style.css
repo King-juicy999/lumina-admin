@@ -3377,3 +3377,35 @@ body[data-page='users'] .records-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.super-requests {
+  margin-top: 2.4rem;
+}
+
+.pill--request-pending {
+  border-color: var(--filing-red);
+  background: var(--accent-soft);
+  color: var(--filing-red);
+}
+
+.pill--request-approved {
+  border-color: var(--stamp);
+  background: color-mix(in srgb, var(--stamp) 10%, var(--record));
+  color: var(--stamp-deep);
+}
+
+.pill--request-declined {
+  border-color: color-mix(in srgb, var(--ink) 35%, var(--ledger));
+  background: var(--paper-deep);
+  color: var(--ink);
+}
+
+.record-action:disabled,
+.record-action:disabled:hover,
+.record-action:disabled:active {
+  border-color: var(--ledger);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: not-allowed;
+  transform: none;
+}

@@ -60,6 +60,18 @@
             </div>
             <div class="records-grid" id="team-grid"></div>
           </div>
+          <div id="super-requests-section" class="super-requests" hidden>
+            <h2 class="section-sub" id="super-requests-heading">Super admin requests</h2>
+            <div class="loading-state" id="requests-loading" hidden>Loading requests</div>
+            <div class="error-state" id="requests-error" hidden>
+              <span>The requests could not be loaded.</span>
+              <button type="button" class="error-state__retry" id="requests-retry">Try again</button>
+            </div>
+            <div class="records-grid" id="requests-grid"></div>
+            <div class="empty-state" id="requests-empty" hidden>
+              <p id="requests-empty-message">No requests yet.</p>
+            </div>
+          </div>
           <div id="search-section">
             <h2 class="section-sub">Give admin access</h2>
             <div class="control-bar" role="search">
@@ -102,6 +114,7 @@
     <script src="js/hierarchy.js"></script>
     <script src="js/session.js"></script>
     <script src="js/modal.js"></script>
+    <script src="js/poll.js"></script>
     <script src="js/admins.js"></script>
   </body>
 </html>
