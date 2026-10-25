@@ -2,6 +2,7 @@ const REQUESTS_URL = `${API}/accounts/ban-requests/`;
 
 let banRequests = [];
 let lastRequestSignature = '';
+let banRequestsLoaded = false;
 
 const requestElements = {
   records: document.getElementById('records'),
@@ -81,10 +82,11 @@ function runAction(url, body) {
             console.error('The ban request was already decided.', response.status, data);
             showNotice(`Already decided by ${data.decided_by_name || 'someone else'}`, 'bad');
             loadBanRequests();
-          } else {
-            console.error('The ban decision was refused.', response.status);
-            showNotice(messages[response.status] || messages.other, 'bad');
+            resolve('decided');
+            return;
           }
+          console.error('The ban decision was refused.', response.status);
+          showNotice(messages[response.status] || messages.other, 'bad');
           resolve(false);
           return;
         }
@@ -106,6 +108,9 @@ async function decideRequest(entry, decision) {
   const names = { approve: 'approve', deny: 'deny' };
   const url = `${REQUESTS_URL}${entry.id}/${names[decision]}/`;
   const ok = await runAction(url, { decision_note: entry.decision_note || '' });
+  if (ok === 'decided') {
+    return true;
+  }
   if (ok) {
     dropRequest(entry.id);
     showNotice(decision === 'approve' ? `${entry.target.full_name} is banned.` : 'The ban request was refused.', 'good');
@@ -198,8 +203,12 @@ async function loadBanRequests() {
       throw new Error(`status ${response.status}`);
     }
     banRequests = await response.json();
+    banRequestsLoaded = true;
   } catch (error) {
     console.error('The ban requests could not be loaded.', error);
+    if (banRequestsLoaded) {
+      return;
+    }
     banRequests = [];
   }
   populateRequestList(banRequests);
