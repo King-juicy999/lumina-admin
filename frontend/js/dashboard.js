@@ -4,10 +4,12 @@ const DASH_INBOX_URL = `${API}/feedback/inbox/summary/`;
 const DASH_BANS_URL = `${API}/accounts/ban-requests/`;
 const DASH_RESETS_URL = `${API}/accounts/password-resets/`;
 const DASH_USERS_URL = `${API}/accounts/users/`;
+const DASH_TEAM_URL = `${API}/accounts/admins/`;
 const DASH_HEALTH_URL = `${API}/health/`;
 
 const DASH_FAILURE = 'That could not be read just now.';
 const DASH_LATEST_COUNT = 4;
+const DASH_TEAM_COUNT = 6;
 const DASH_GAUGE_MAX_MS = 1500;
 
 const DASH_RANGES = [
@@ -42,6 +44,12 @@ const DASH_ADMIN_QUEUE = [
   { id: 'suspended', label: 'Suspended students', note: 'access held', href: 'users.html', page: 'Users', value: 0 }
 ];
 
+const DASH_SUPER_QUEUE = [
+  { id: 'bans', label: 'Ban requests', note: 'decisions waiting', href: 'requests.html', page: 'Ban requests', value: 0 },
+  { id: 'bin', label: 'Recycle bin items', note: 'waiting to be restored', href: 'recycle.html', page: 'Recycle bin', value: 0 },
+  { id: 'suspended', label: 'Suspended students', note: 'access held', href: 'users.html', page: 'Users', value: 0 }
+];
+
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const CHART_WIDTH = 640;
 const CHART_HEIGHT = 220;
@@ -49,11 +57,15 @@ const CHART_PAD = { top: 18, right: 18, bottom: 34, left: 46 };
 const CODE_SPLIT = /\s*?([A-Z]{2,3})\s*(\d+)$/;
 
 function dash(name) {
-  return dashAdmin ? name + '-admin' : name;
+  if (dashAdmin) return name + '-admin';
+  if (dashSuper) return name + '-super';
+  return name;
 }
 
 function queueEntries() {
-  return dashAdmin ? DASH_ADMIN_QUEUE : DASH_QUEUE;
+  if (dashAdmin) return DASH_ADMIN_QUEUE;
+  if (dashSuper) return DASH_SUPER_QUEUE;
+  return DASH_QUEUE;
 }
 
 let dashUsers = null;
@@ -61,6 +73,7 @@ let dashRange = '1W';
 let dashQueueOrder = ['notes', 'resets', 'bans'];
 let dashChart = null;
 let dashAdmin = false;
+let dashSuper = false;
 
 function svgNode(tag, attributes) {
   const node = document.createElementNS(SVG_NS, tag);
@@ -314,6 +327,23 @@ async function loadQueue() {
       const joined = list.filter((user) => user && user.role === 'student' && joinedRecently(user)).length;
       const added = Number(stats.materials_this_week) || 0;
       const values = { suspended: suspended, joined: joined, added: added };
+      for (const entry of queueEntries()) {
+        entry.value = Number(values[entry.id]) || 0;
+      }
+      renderQueue();
+      endTile(tile);
+      return;
+    }
+    if (dashSuper) {
+      const results = await Promise.all([readJson(DASH_BANS_URL), readJson(DASH_RECYCLE_URL), loadUsers()]);
+      const bans = Array.isArray(results[0]) ? results[0] : [];
+      const summary = results[1] || {};
+      const list = Array.isArray(results[2]) ? results[2] : [];
+      const values = {
+        bans: bans.length,
+        bin: (Number(summary.users) || 0) + (Number(summary.materials) || 0),
+        suspended: list.filter((user) => user && user.status === 'suspended').length
+      };
       for (const entry of queueEntries()) {
         entry.value = Number(values[entry.id]) || 0;
       }
@@ -780,6 +810,41 @@ async function loadRoles() {
   }
 }
 
+function teamRolePill(role) {
+  const pill = makeElement('span', 'pill', role === 'super_admin' ? 'Super admin' : 'Admin');
+  pill.classList.add(role === 'super_admin' ? 'pill--super' : 'pill--staff');
+  return pill;
+}
+
+function renderTeam(members) {
+  const host = document.getElementById(dash('dash-team-body'));
+  const list = (Array.isArray(members) ? members : []).slice(0, DASH_TEAM_COUNT);
+  if (list.length === 0) {
+    host.replaceChildren(makeElement('p', 'dash-team__empty', 'No admins are listed yet.'));
+    return;
+  }
+  host.replaceChildren(
+    ...list.map((member) => {
+      const row = makeElement('div', 'dash-team__row');
+      row.appendChild(makeElement('span', 'dash-team__name', member.full_name));
+      row.appendChild(teamRolePill(member.role));
+      return row;
+    })
+  );
+}
+
+async function loadTeam() {
+  const tile = document.getElementById(dash('dash-team'));
+  beginTile(tile);
+  try {
+    const team = await readJson(DASH_TEAM_URL);
+    renderTeam(team);
+    endTile(tile);
+  } catch (error) {
+    failTile(tile, 'The team could not be read.', error, loadTeam);
+  }
+}
+
 function renderInbox(summary) {
   const figure = document.getElementById(dash('dash-inbox-figure'));
   const bars = document.getElementById(dash('dash-inbox-bars'));
@@ -880,7 +945,7 @@ async function loadLatest() {
   try {
     const users = await loadUsers();
     const list = Array.isArray(users) ? users : [];
-    renderLatest(dashAdmin ? list.filter((user) => user && user.role === 'student') : list);
+    renderLatest((dashAdmin || dashSuper) ? list.filter((user) => user && user.role === 'student') : list);
     endTile(tile);
   } catch (error) {
     failTile(tile, 'The latest accounts could not be read.', error, loadLatest);
@@ -890,10 +955,10 @@ async function loadLatest() {
 function bootDashboard() {
   renderGreeting();
   buildQueue();
-  gaugeParts(document.getElementById(dashAdmin ? 'dash-gauge-admin' : 'dash-gauge'));
+  gaugeParts(document.getElementById(dash('dash-gauge')));
   renderRanges();
-  const chartHost = document.getElementById(dashAdmin ? 'dash-chart-admin' : 'dash-chart');
-  document.getElementById(dashAdmin ? 'dash-check-admin' : 'dash-check').addEventListener('click', loadServer);
+  const chartHost = document.getElementById(dash('dash-chart'));
+  document.getElementById(dash('dash-check')).addEventListener('click', loadServer);
   chartHost.addEventListener('keydown', handleChartKeys);
   chartHost.addEventListener('blur', () => {
     if (dashChart && dashChart.hide) {
@@ -906,19 +971,24 @@ function bootDashboard() {
   loadSignups();
   if (!dashAdmin) {
     loadRoles();
-    loadInbox();
     loadRecycle();
-  }
-  loadLatest();
-  if (dashAdmin) {
+  } else {
     loadMostDownloaded();
   }
+  if (dashSuper) {
+    loadTeam();
+  }
+  if (!dashAdmin && !dashSuper) {
+    loadInbox();
+  }
+  loadLatest();
 }
 
 window.profileReady.then(() => {
   const profile = window.profileData;
   const dashboard = document.getElementById('owner-dash');
   const admin = document.getElementById('admin-dash');
+  const superDash = document.getElementById('super-dash');
   if (profile && profile.is_owner) {
     if (!dashboard) {
       return;
@@ -935,6 +1005,25 @@ window.profileReady.then(() => {
     return;
   }
   if (isSuperAdmin()) {
+    if (!superDash) {
+      return;
+    }
+    for (const selector of ['.desk', '.lp-stats', '.lp-section--deep']) {
+      const section = document.querySelector(selector);
+      if (section) {
+        section.hidden = true;
+      }
+    }
+    superDash.hidden = false;
+    if (dashboard) {
+      dashboard.hidden = true;
+    }
+    if (admin) {
+      admin.hidden = true;
+    }
+    dashSuper = true;
+    dashQueueOrder = ['bin', 'suspended', 'bans'];
+    bootDashboard();
     return;
   }
   if (admin) {

@@ -47,7 +47,7 @@
 
     <main>
 
-      <section class="desk">
+      <section class="desk" hidden>
         <div class="container desk-grid">
           <article class="master-card">
             <div class="master-card__head">
@@ -80,7 +80,7 @@
         </div>
       </section>
 
-      <section class="lp-stats" aria-label="Library stats">
+      <section class="lp-stats" aria-label="Library stats" hidden>
         <div class="container lp-stats__inner">
           <div class="lp-stats__cell">
             <p class="lp-stats__value" id="stat-total">0</p>
@@ -101,7 +101,7 @@
         </div>
       </section>
 
-      <section class="lp-section lp-section--deep" aria-labelledby="coverage-heading">
+      <section class="lp-section lp-section--deep" aria-labelledby="coverage-heading" hidden>
         <div class="container">
           <div class="band-label">
             <h2 id="coverage-heading">Where the library is thin.</h2>
@@ -290,6 +290,110 @@
               </div>
               <div class="dash-body">
                 <ul class="dash-latest" id="dash-latest-list-admin"></ul>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+          </div>
+        </div>
+      </section>
+
+      <section class="super-dash" id="super-dash" hidden aria-label="Super admin dashboard">
+        <div class="container">
+          <div class="dash-grid super-mode">
+
+            <article class="dash-tile dash-tile--hero" id="dash-hero-super">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Records on file</span>
+                <span class="dash-tile__ref">LUMINA / LEDGER</span>
+              </div>
+              <div class="dash-body">
+                <h1 class="dash-hero__greeting" id="dash-greeting-super"></h1>
+                <p class="dash-hero__figure" id="dash-figure-super">0</p>
+                <p class="dash-hero__note" id="dash-hero-note-super"></p>
+                <div class="dash-hero__figures" id="dash-hero-figures-super"></div>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--stack" id="dash-waiting-super">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Needs a decision</span>
+                <span class="dash-tile__ref">QUEUE</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-stack" id="dash-stack-super"></div>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--gauge" id="dash-server-super">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Response time</span>
+                <span class="dash-tile__ref">LIVE CHECK</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-gauge" id="dash-gauge-super"></div>
+                <p class="dash-gauge__line" id="dash-gauge-line-super" aria-live="polite"></p>
+                <button type="button" class="dash-check" id="dash-check-super">Check again</button>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--chart" id="dash-signups-super">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Students joined</span>
+                <span class="dash-tile__ref">CUMULATIVE</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-ranges" id="dash-ranges-super" role="group" aria-label="Chart range"></div>
+                <div class="dash-chart" id="dash-chart-super"></div>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--roles" id="dash-roles-super">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Who is on Lumina</span>
+                <span class="dash-tile__ref">ROLES</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-roles" id="dash-roles-body-super"></div>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--team" id="dash-team-super">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Your team</span>
+                <span class="dash-tile__ref">LUMINA / TEAM</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-team" id="dash-team-body-super"></div>
+                <a class="dash-link" href="admins.html">Open the team list</a>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--recycle" id="dash-recycle-super">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Recycle bin</span>
+                <span class="dash-tile__ref">REMOVED</span>
+              </div>
+              <div class="dash-body">
+                <div class="dash-pair" id="dash-recycle-body-super"></div>
+                <a class="dash-link" href="recycle.html">Open recycle bin</a>
+              </div>
+              <p class="dash-state" hidden></p>
+            </article>
+
+            <article class="dash-tile dash-tile--latest" id="dash-latest-super">
+              <div class="dash-tile__head">
+                <span class="dash-tile__label">Latest sign ups</span>
+                <span class="dash-tile__ref">NEWEST FIRST</span>
+              </div>
+              <div class="dash-body">
+                <ul class="dash-latest" id="dash-latest-list-super"></ul>
               </div>
               <p class="dash-state" hidden></p>
             </article>

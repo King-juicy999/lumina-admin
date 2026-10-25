@@ -3409,3 +3409,130 @@ body[data-page='users'] .records-grid {
   cursor: not-allowed;
   transform: none;
 }
+
+.super-dash,
+.admin-dash {
+  padding: 2.6rem 0 3.4rem;
+}
+
+.dash-grid.super-mode {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dash-grid.super-mode .dash-tile--hero {
+  grid-column: span 2;
+}
+
+.dash-grid.super-mode .dash-tile--stack {
+  grid-column: span 1;
+}
+
+.dash-grid.super-mode .dash-tile--gauge {
+  grid-column: span 1;
+}
+
+.dash-grid.super-mode .dash-tile--chart {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.dash-grid.super-mode .dash-tile--roles {
+  grid-column: span 1;
+}
+
+.dash-grid.super-mode .dash-tile--team {
+  grid-column: span 1;
+  grid-row: span 2;
+}
+
+.dash-grid.super-mode .dash-tile--recycle {
+  grid-column: span 1;
+}
+
+.dash-grid.super-mode .dash-tile--latest {
+  grid-column: span 4;
+}
+
+.dash-team {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.dash-team__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--paper-deep);
+  border: var(--edge);
+  border-radius: 4px;
+}
+
+.dash-team__name {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash-team__row .pill {
+  flex-shrink: 0;
+}
+
+.dash-team__empty {
+  margin: 0;
+  font-family: var(--font-record);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 900px) {
+  .dash-grid.super-mode {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dash-grid.super-mode .dash-tile--hero,
+  .dash-grid.super-mode .dash-tile--chart,
+  .dash-grid.super-mode .dash-tile--latest {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+
+  .dash-grid.super-mode .dash-tile--stack,
+  .dash-grid.super-mode .dash-tile--gauge,
+  .dash-grid.super-mode .dash-tile--roles,
+  .dash-grid.super-mode .dash-tile--team,
+  .dash-grid.super-mode .dash-tile--recycle {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .super-dash,
+  .admin-dash {
+    padding: 1.6rem 0 2.6rem;
+  }
+
+  .dash-grid.super-mode {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dash-grid.super-mode .dash-tile--hero,
+  .dash-grid.super-mode .dash-tile--stack,
+  .dash-grid.super-mode .dash-tile--gauge,
+  .dash-grid.super-mode .dash-tile--chart,
+  .dash-grid.super-mode .dash-tile--roles,
+  .dash-grid.super-mode .dash-tile--team,
+  .dash-grid.super-mode .dash-tile--recycle,
+  .dash-grid.super-mode .dash-tile--latest {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+}
