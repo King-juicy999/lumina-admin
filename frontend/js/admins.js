@@ -2,7 +2,7 @@ const ADMINS_URL = `${API}/accounts/admins/`;
 const USERS_URL = `${API}/accounts/users/`;
 const SUPER_REQUESTS_URL = `${API}/accounts/super-admin-requests/`;
 const REASON_LIMIT = 500;
-const DECIDED_LIMIT = 10;
+const RECENT_DECIDED_DAYS = 3;
 
 const PROMOTION_FAILURES = {
   400: 'That person cannot be promoted this way.',
@@ -99,10 +99,21 @@ function requestByDecidedDesc(a, b) {
   return new Date(b.decided_at || b.created_at) - new Date(a.decided_at || a.created_at);
 }
 
+function decidedRecently(entry) {
+  const decided = new Date(entry.decided_at);
+  if (Number.isNaN(decided.getTime())) {
+    return false;
+  }
+  return Date.now() - decided.getTime() < RECENT_DECIDED_DAYS * 24 * 60 * 60 * 1000;
+}
+
 function orderRequests(list) {
   const pending = list.filter((entry) => entry.status === 'pending').sort(requestByCreatedDesc);
-  const decided = list.filter((entry) => entry.status !== 'pending').sort(requestByDecidedDesc);
-  return pending.concat(viewerIsOwner() ? decided.slice(0, DECIDED_LIMIT) : decided);
+  if (viewerIsOwner()) {
+    return pending;
+  }
+  const decided = list.filter((entry) => entry.status !== 'pending' && decidedRecently(entry)).sort(requestByDecidedDesc);
+  return pending.concat(decided);
 }
 
 function buildTeamCard(member) {
@@ -528,7 +539,7 @@ function resetSearch() {
 function revealRequestsSection() {
   const owner = viewerIsOwner();
   elements.requestsHeading.textContent = owner ? 'Super admin requests' : 'Your requests';
-  elements.requestsEmptyMsg.textContent = owner ? 'No super admin requests yet.' : 'You have not asked for a promotion.';
+  elements.requestsEmptyMsg.textContent = owner ? 'No requests waiting.' : 'You have no recent requests.';
   elements.requestsSection.hidden = false;
 }
 
