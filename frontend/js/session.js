@@ -58,6 +58,11 @@ async function loadAndInitialize() {
     const response = await fetch(`${API}/accounts/admin/me/`, {
       headers: { Accept: 'application/json', Authorization: `Bearer ${sessionStorage.getItem(SESSION_ACCESS_KEY)}` }
     });
+    if (response.status === 401) {
+      clearSession();
+      window.location.replace('/login.html');
+      return;
+    }
     if (response.ok) {
       const data = await response.json();
       window.profileData = data;
