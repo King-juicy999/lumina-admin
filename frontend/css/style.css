@@ -3536,3 +3536,144 @@ body[data-page='users'] .records-grid {
     grid-row: span 1;
   }
 }
+
+.audit-note {
+  margin: -0.9rem 0 1.3rem;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+.audit-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.audit-tab,
+.audit-more {
+  padding: 0.5rem 1.05rem;
+  background: var(--record);
+  border: var(--edge);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease), transform 160ms ease-out, box-shadow 180ms var(--ease);
+}
+
+.audit-tab:not(.audit-tab--on):hover,
+.audit-more:not(:disabled):hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.audit-tab:active,
+.audit-more:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+.audit-tab--on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fffef8;
+  box-shadow: var(--shadow-card);
+}
+
+.audit-more:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.audit-day {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin: 1.5rem 0 0.65rem;
+  color: var(--ink-soft);
+  font-family: var(--font-record);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.audit-day::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--ledger-faint);
+  transform: translateY(-0.25em);
+}
+
+.audit-day:first-child {
+  margin-top: 0;
+}
+
+.audit-entry {
+  margin-bottom: 0.55rem;
+  padding: 0.75rem 1rem;
+  background: var(--record);
+  border: var(--edge);
+  border-radius: 5px;
+  box-shadow: var(--shadow-card);
+}
+
+.audit-entry__top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.audit-entry__time {
+  color: var(--ink-soft);
+  font-family: var(--font-record);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.audit-entry__actor {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.audit-entry__sentence {
+  margin: 0.25rem 0 0;
+  font-size: 0.94rem;
+}
+
+.audit-entry__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0.4rem 0 0;
+  color: var(--ink-subtle);
+  font-size: 0.85rem;
+}
+
+.audit-older {
+  margin: 1.4rem 0;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .audit-tabs {
+    gap: 0.4rem;
+  }
+
+  .audit-tab,
+  .audit-more {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.84rem;
+  }
+
+  .audit-filter .field-menu {
+    flex: 1 1 100%;
+  }
+
+  .audit-entry {
+    padding: 0.7rem 0.8rem;
+  }
+}

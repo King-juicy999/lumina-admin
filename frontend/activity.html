@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Lumina Admin | Activity</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="js/guard.js"></script>
+  </head>
+  <body data-page="activity">
+
+    <header class="plate-nav">
+      <div class="container plate-nav__inner">
+        <a href="index.html" class="plate-brand">
+          <span class="plate-brand__name">Lumina</span>
+          <span class="plate-brand__tag">Admin Console</span>
+        </a>
+        <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="menu-panel">
+          Menu
+          <span class="menu-dot" id="menu-dot" hidden></span>
+        </button>
+        <nav class="plate-links" aria-label="Admin sections">
+          <a href="index.html">Overview</a>
+          <a href="materials.html">Materials</a>
+          <a href="users.html">Users</a>
+          <a href="requests.html" data-role="super" hidden>Ban requests</a>
+          <a href="recycle.html" data-role="super" hidden>Recycle bin</a>
+          <a href="admins.html" data-role="super" hidden>Admins</a>
+          <a href="inbox.html" data-role="owner" hidden>Inbox <span class="inbox-badge" id="inbox-badge" hidden>0</span></a>
+          <a href="activity.html" data-role="owner" hidden aria-current="page">Activity</a>
+          <button type="button" class="plate-btn plate-btn--logout" id="logout-btn">Sign out</button>
+        </nav>
+        <nav id="menu-panel" class="menu-panel" hidden aria-label="Admin sections">
+          <a href="index.html" class="menu-item">Overview</a>
+          <a href="materials.html" class="menu-item">Materials</a>
+          <a href="users.html" class="menu-item">Users</a>
+          <a href="requests.html" class="menu-item" data-role="super" hidden>Ban requests</a>
+          <a href="recycle.html" class="menu-item" data-role="super" hidden>Recycle bin</a>
+          <a href="admins.html" class="menu-item" data-role="super" hidden>Admins</a>
+          <a href="inbox.html" class="menu-item" data-role="owner" hidden>Inbox <span class="inbox-badge" id="inbox-badge-menu" hidden>0</span></a>
+          <a href="activity.html" class="menu-item" data-role="owner" hidden aria-current="page">Activity</a>
+          <button type="button" class="menu-logout" id="logout-btn-menu">Sign out</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+
+      <section class="lp-section">
+        <div class="container">
+          <div class="band-label">
+            <h1>Activity</h1>
+            <span class="band-rule" aria-hidden="true"></span>
+          </div>
+
+          <p class="audit-note">Entries older than 90 days are cleared automatically.</p>
+
+          <div class="audit-tabs">
+            <button type="button" class="audit-tab audit-tab--on" data-group="admins" aria-pressed="true">Admins</button>
+            <button type="button" class="audit-tab" data-group="super_admins" aria-pressed="false">Super admins</button>
+            <button type="button" class="audit-tab" data-group="owner" aria-pressed="false">My activity</button>
+          </div>
+
+          <div class="control-bar audit-filter" role="search">
+            <div class="field field-menu">
+              <label class="field-label" for="action-filter">Action</label>
+              <select id="action-filter" class="field-select">
+                <option value="">Everything</option>
+                <option value="login,logout">Sign ins and outs</option>
+                <option value="suspend,unsuspend">Suspensions</option>
+                <option value="ban,ban_request,ban_approve,ban_deny,restore_user">Bans</option>
+                <option value="promote_admin,demote_admin,promotion_request,promotion_approve,promotion_decline">Role changes</option>
+                <option value="hide_material,restore_material">Materials</option>
+                <option value="reset_password">Password resets</option>
+                <option value="permanent_delete">Deletions</option>
+              </select>
+            </div>
+            <div class="field field-menu">
+              <label class="field-label" for="actor-filter">Person</label>
+              <select id="actor-filter" class="field-select"></select>
+            </div>
+          </div>
+
+          <div class="empty-state" id="audit-state" hidden></div>
+          <div class="audit-list" id="audit-list"></div>
+          <div class="audit-older">
+            <button type="button" class="audit-more" id="load-older" hidden>Load older</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="colophon">
+      <div class="container colophon__inner">
+        <p>Private console &middot; not student facing</p>
+        <nav>
+          <a href="index.html">Overview</a>
+          <a href="materials.html">Materials</a>
+          <a href="users.html">Users</a>
+          <a href="requests.html" data-role="super" hidden>Ban requests</a>
+          <a href="recycle.html" data-role="super" hidden>Recycle bin</a>
+          <a href="admins.html" data-role="super" hidden>Admins</a>
+          <a href="inbox.html" data-role="owner" hidden>Inbox</a>
+          <a href="activity.html" data-role="owner" hidden>Activity</a>
+        </nav>
+      </div>
+    </footer>
+
+    <p class="notice" id="notice" role="status" aria-live="polite"></p>
+
+    <script src="js/config.js"></script>
+    <script src="js/wake.js"></script>
+    <script src="js/hierarchy.js"></script>
+    <script src="js/session.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/poll.js"></script>
+    <script src="js/activity.js"></script>
+  </body>
+</html>
