@@ -230,7 +230,8 @@ function buildBody(user, isExpanded) {
   }
   if (user.status === 'suspended') {
     const until = user.suspended_until ? ` until ${formatStamp(user.suspended_until)}` : '';
-    pills.appendChild(makeElement('span', 'pill pill--suspended', `Suspended${until}`));
+    const by = user.role === 'admin' && user.suspended_by_name ? ` by ${user.suspended_by_name}` : '';
+    pills.appendChild(makeElement('span', 'pill pill--suspended', `Suspended${until}${by}`));
   }
   if (pills.childElementCount) {
     body.appendChild(pills);
@@ -259,8 +260,8 @@ function buildFoot(user, isExpanded) {
   if (user.role === 'super_admin') {
     return foot;
   }
-  if (user.role === 'admin' && !isSuperAdmin()) {
-    return foot;
+  if (user.role === 'admin') {
+    return buildAdminFoot(foot, user);
   }
 
   const profile = window.profileData || {};
@@ -271,6 +272,29 @@ function buildFoot(user, isExpanded) {
   const suspended = user.status === 'suspended';
   foot.appendChild(actionButton(suspended ? 'Lift suspension' : 'Suspend', suspended ? 'unsuspend' : 'suspend', user));
   foot.appendChild(actionButton(isSuperAdmin() ? 'Ban' : 'Request ban', isSuperAdmin() ? 'ban' : 'ban-requests', user));
+  return foot;
+}
+
+function buildAdminFoot(foot, user) {
+  const profile = window.profileData || {};
+  if (!isSuperAdmin()) {
+    return foot;
+  }
+
+  const suspended = user.status === 'suspended';
+  if (profile.is_owner) {
+    if (!user.is_owner && user.id !== profile.id) {
+      foot.appendChild(actionButton('Reset password', 'password', user));
+    }
+    foot.appendChild(actionButton(suspended ? 'Lift suspension' : 'Suspend', suspended ? 'unsuspend' : 'suspend', user));
+    foot.appendChild(actionButton('Ban', 'ban', user));
+    return foot;
+  }
+
+  if (suspended && user.suspended_by !== profile.id) {
+    return foot;
+  }
+  foot.appendChild(actionButton(suspended ? 'Lift suspension' : 'Suspend', suspended ? 'unsuspend' : 'suspend', user));
   return foot;
 }
 
