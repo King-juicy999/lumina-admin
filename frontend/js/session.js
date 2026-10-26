@@ -4,6 +4,7 @@ const SESSION_ROLE_KEY = 'lumina_admin_role';
 
 const SUPER_ADMIN = 'super_admin';
 const DEFAULT_ROLE = 'admin';
+const LOGOUT_TIMEOUT = 1500;
 
 function getRole() {
   return sessionStorage.getItem(SESSION_ROLE_KEY) || DEFAULT_ROLE;
@@ -17,6 +18,30 @@ function clearSession() {
   sessionStorage.removeItem(SESSION_ACCESS_KEY);
   sessionStorage.removeItem(SESSION_REFRESH_KEY);
   sessionStorage.removeItem(SESSION_ROLE_KEY);
+}
+
+async function endSession() {
+  const refresh = sessionStorage.getItem(SESSION_REFRESH_KEY);
+  try {
+    await Promise.race([
+      fetch(`${API}/accounts/logout/`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionStorage.getItem(SESSION_ACCESS_KEY)}`
+        },
+        body: JSON.stringify({ refresh })
+      }),
+      new Promise((resolve) => {
+        setTimeout(resolve, LOGOUT_TIMEOUT);
+      })
+    ]);
+  } catch (e) {
+    console.error('Logout could not be recorded.', e);
+  }
+  clearSession();
+  window.location.href = '/login.html';
 }
 
 async function authorisedFetch(url, options = {}) {

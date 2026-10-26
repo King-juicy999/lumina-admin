@@ -215,8 +215,7 @@ async function loadBanRequests() {
 }
 
 function signOut() {
-  clearSession();
-  window.location.href = '/login.html';
+  endSession();
 }
 
 requestElements.records.addEventListener('click', handleRequestAction);

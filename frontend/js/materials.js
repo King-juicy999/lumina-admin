@@ -255,9 +255,7 @@ function handleReveal(event) {
 }
 
 function signOut() {
-  sessionStorage.removeItem('lumina_access_token');
-  sessionStorage.removeItem('lumina_refresh_token');
-  window.location.href = '/login.html';
+  endSession();
 }
 
 elements.search.addEventListener('input', () => loadMaterials());

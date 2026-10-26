@@ -544,8 +544,7 @@ function revealRequestsSection() {
 }
 
 function signOut() {
-  clearSession();
-  window.location.href = '/login.html';
+  endSession();
 }
 
 if (!isSuperAdmin()) {

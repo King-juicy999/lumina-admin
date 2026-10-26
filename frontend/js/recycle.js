@@ -483,8 +483,7 @@ function resetFilters() {
 }
 
 function signOut() {
-  clearSession();
-  window.location.href = '/login.html';
+  endSession();
 }
 
 recElements.usersGrid.addEventListener('click', handleRecordsClick);

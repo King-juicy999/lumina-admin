@@ -111,9 +111,7 @@ async function loadStats() {
 }
 
 function signOut() {
-  sessionStorage.removeItem('lumina_access_token');
-  sessionStorage.removeItem('lumina_refresh_token');
-  window.location.href = '/login.html';
+  endSession();
 }
 
 setStats(SAMPLE_STATS);

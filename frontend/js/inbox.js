@@ -440,8 +440,7 @@ function showNoteModal(note, noteData) {
 }
 
 function signOut() {
-  clearSession();
-  window.location.href = '/login.html';
+  endSession();
 }
 
 window.profileReady.then(() => {
