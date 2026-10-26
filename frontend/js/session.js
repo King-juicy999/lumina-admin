@@ -177,8 +177,7 @@ function initMenu() {
   const logoutBtn = document.getElementById('logout-btn-menu');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-      clearSession();
-      window.location.href = '/login.html';
+      endSession();
     });
   }
 }

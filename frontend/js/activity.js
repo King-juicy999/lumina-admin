@@ -9,7 +9,7 @@ const ACTION_SENTENCES = {
   suspend: (entry) => `Suspended ${targetName(entry)}`,
   unsuspend: (entry) => `Unsuspended ${targetName(entry)}`,
   ban: (entry) => `Banned ${targetName(entry)}`,
-  ban_request: (entry) => `Asked the owner to ban ${targetName(entry)}`,
+  ban_request: (entry) => `Requested a ban for ${targetName(entry)}`,
   ban_approve: (entry) => `Approved the ban request for ${targetName(entry)}`,
   ban_deny: (entry) => `Denied the ban request for ${targetName(entry)}`,
   restore_user: (entry) => `Restored ${targetName(entry)}`,
@@ -38,6 +38,7 @@ const tabState = {};
 TAB_GROUPS.forEach((group) => {
   tabState[group] = {
     entries: [],
+    actors: new Map(),
     loaded: false,
     failed: false,
     complete: false,
@@ -54,7 +55,8 @@ const elements = {
   actor: document.getElementById('actor-filter'),
   list: document.getElementById('audit-list'),
   state: document.getElementById('audit-state'),
-  older: document.getElementById('load-older')
+  older: document.getElementById('load-older'),
+  logout: document.getElementById('logout-btn')
 };
 
 function makeElement(tag, className, text) {
@@ -171,8 +173,21 @@ function addEntries(state, rows) {
   if (!fresh.length) {
     return false;
   }
+  registerActors(state, fresh);
   state.entries = state.entries.concat(fresh).sort(byNewest);
   return true;
+}
+
+function registerActors(state, rows) {
+  for (const entry of rows) {
+    if (entry.actor_id === undefined || entry.actor_id === null) {
+      continue;
+    }
+    const key = String(entry.actor_id);
+    if (!state.actors.has(key)) {
+      state.actors.set(key, entry.actor_name || 'Unknown');
+    }
+  }
 }
 
 function showState(message, failed) {
@@ -203,6 +218,7 @@ async function loadTab(group) {
     if (group !== activeTab) {
       return;
     }
+    registerActors(state, rows);
     state.entries = rows;
     state.loaded = true;
     state.complete = rows.length < PAGE_SIZE;
@@ -268,19 +284,9 @@ function renderTabButtons() {
 }
 
 function renderActorOptions(state) {
-  const seen = new Map();
-  for (const entry of state.entries) {
-    if (entry.actor_id === undefined || entry.actor_id === null) {
-      continue;
-    }
-    const key = String(entry.actor_id);
-    if (!seen.has(key)) {
-      seen.set(key, entry.actor_name || 'Unknown');
-    }
-  }
   elements.actor.replaceChildren();
   elements.actor.appendChild(makeOption('', 'Everyone'));
-  for (const pair of seen) {
+  for (const pair of state.actors) {
     elements.actor.appendChild(makeOption(pair[0], pair[1]));
   }
 }
@@ -394,12 +400,19 @@ function handleActorFilter() {
   loadTab(activeTab);
 }
 
+function signOut() {
+  endSession();
+}
+
 for (const button of elements.tabs) {
   button.addEventListener('click', () => switchTab(button.dataset.group));
 }
 elements.action.addEventListener('change', handleActionFilter);
 elements.actor.addEventListener('change', handleActorFilter);
 elements.older.addEventListener('click', loadOlder);
+if (elements.logout) {
+  elements.logout.addEventListener('click', signOut);
+}
 
 window.profileReady.then(() => {
   if (!window.profileData || !window.profileData.is_owner) {
