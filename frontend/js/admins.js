@@ -131,6 +131,11 @@ function buildTeamCard(member) {
   meta.appendChild(roleBadge(member.role));
   if (member.is_owner) meta.appendChild(makeElement('span', 'pill pill--owner', 'Owner'));
   if (member.date_joined) meta.appendChild(document.createTextNode(` / joined ${formatDate(member.date_joined)}`));
+  if (member.status === 'suspended') {
+    const until = member.suspended_until ? ` until ${formatStamp(member.suspended_until)}` : '';
+    const by = member.role === 'admin' && member.suspended_by_name ? ` by ${member.suspended_by_name}` : '';
+    meta.appendChild(makeElement('span', 'pill pill--suspended', `Suspended${until}${by}`));
+  }
   body.appendChild(meta);
   card.appendChild(body);
 
@@ -168,6 +173,16 @@ function buildTeamCard(member) {
       btn.dataset.id = String(member.id);
       btn.dataset.action = 'remove-admin';
       foot.appendChild(btn);
+    }
+    if (member.role === 'admin' && profile.role === 'super_admin') {
+      const suspended = member.status === 'suspended';
+      if (!suspended || profile.is_owner || member.suspended_by === profile.id) {
+        const btn = makeElement('button', `record-action record-action--${suspended ? 'unsuspend' : 'suspend'}`, suspended ? 'Lift suspension' : 'Suspend');
+        btn.type = 'button';
+        btn.dataset.id = String(member.id);
+        btn.dataset.action = suspended ? 'unsuspend' : 'suspend';
+        foot.appendChild(btn);
+      }
     }
   }
 
@@ -445,11 +460,28 @@ async function decideSuperRequest(entry, action) {
   }
 }
 
+function afterModeration() {
+  loadTeam();
+}
+
 async function handleTeamClick(event) {
   const button = event.target.closest('.record-action');
   if (!button) return;
   const id = Number(button.dataset.id);
   const action = button.dataset.action;
+  const member = teamMembers.find((entry) => entry.id === id);
+  if (action === 'suspend') {
+    if (member) {
+      suspendUser(member);
+    }
+    return;
+  }
+  if (action === 'unsuspend') {
+    if (member) {
+      liftSuspension(member);
+    }
+    return;
+  }
   if (action === 'request-super-admin') {
     const sent = await openActionModal({
       title: 'Request super admin',
