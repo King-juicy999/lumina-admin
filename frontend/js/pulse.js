@@ -1,5 +1,6 @@
 const PULSE_URL = `${API}/accounts/staff-pulse/`;
 const PULSE_BASE_MS = 30000;
+const PULSE_HIDDEN_MS = 60000;
 const PULSE_MAX_MS = 300000;
 const PULSE_JITTER_MS = 2000;
 const PULSE_TOAST_MS = 6000;
@@ -71,8 +72,9 @@ function onStaffPulse(wanted, handler) {
 }
 
 function pulseDelay() {
-  const base = pulseFailures === 0 ? PULSE_BASE_MS : Math.min(PULSE_MAX_MS, PULSE_BASE_MS * Math.pow(2, pulseFailures));
-  return base + Math.random() * PULSE_JITTER_MS * 2 - PULSE_JITTER_MS;
+  const base = document.hidden ? PULSE_HIDDEN_MS : PULSE_BASE_MS;
+  const wait = pulseFailures === 0 ? base : Math.min(PULSE_MAX_MS, base * Math.pow(2, pulseFailures));
+  return wait + Math.random() * PULSE_JITTER_MS * 2 - PULSE_JITTER_MS;
 }
 
 function pulseSchedule() {
@@ -84,7 +86,7 @@ function pulseSchedule() {
 }
 
 function pulseTick() {
-  if (pulseRunning && !pulseInFlight && !document.hidden) {
+  if (pulseRunning && !pulseInFlight) {
     pulseRequest();
     return;
   }
@@ -247,7 +249,20 @@ function pulseToast(item, ms = PULSE_TOAST_MS) {
   });
   close.addEventListener('click', dismiss);
 
-  timer = window.setTimeout(dismiss, ms);
+  function expire() {
+    timer = window.setTimeout(dismiss, ms);
+  }
+
+  if (document.hidden) {
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        expire();
+      }
+    }, { once: true });
+  } else {
+    expire();
+  }
+
   toast.append(body, close);
   host.appendChild(toast);
   requestAnimationFrame(() => {
