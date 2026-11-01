@@ -5,6 +5,10 @@ const PULSE_JITTER_MS = 2000;
 const PULSE_TOAST_MS = 6000;
 const PULSE_TOAST_OUT_MS = 240;
 const PULSE_TOAST_MAX = 4;
+const PULSE_MINE_TOAST_MS = 10000;
+const PULSE_MINE_URL = `${API}/accounts/notifications/`;
+const PULSE_MINE_KEY = 'lumina_pulse_mine';
+const PULSE_MINE_FIRST = 3;
 const PULSE_ALERTS_KEY = 'lumina_alerts';
 const PULSE_SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -21,6 +25,8 @@ let pulseTimer = 0;
 let pulseInFlight = false;
 let pulseFailures = 0;
 let pulseRunning = true;
+let pulseMineInFlight = false;
+const pulseMineShown = new Set();
 
 function pulseNode(tag, className, text) {
   const node = document.createElement(tag);
@@ -118,13 +124,84 @@ function pulseApply(data) {
     const stored = sessionStorage.getItem(`lumina_pulse_${key}`);
     if (stored !== null && Number(item.latest_id) > Number(stored)) {
       changed.push(key);
-      pulseToast(key);
-      pulseNotice(key);
+      pulseToast(PULSE_ITEMS[key]);
+      pulseNotice(PULSE_ITEMS[key]);
     }
     sessionStorage.setItem(`lumina_pulse_${key}`, String(item.latest_id));
   }
+  const mine = items.mine;
+  if (mine && mine.latest_id !== undefined) {
+    void pulseMine(mine);
+  }
   if (changed.length > 0) {
     document.dispatchEvent(new CustomEvent('lumina:staff-pulse', { detail: { changed: changed, items: items } }));
+  }
+}
+
+async function pulseMineFetch(sinceId) {
+  const response = await authorisedFetch(`${PULSE_MINE_URL}poll/?since=${sinceId}`);
+  if (response.status === 401 || response.status === 403) {
+    pulseRunning = false;
+    return null;
+  }
+  if (!response.ok) {
+    throw new Error(`status ${response.status}`);
+  }
+  const data = await response.json();
+  return data.results || [];
+}
+
+function pulseMineShow(notice) {
+  if (pulseMineShown.has(String(notice.id))) {
+    return;
+  }
+  pulseMineShown.add(String(notice.id));
+  const item = { ref: notice.title, message: notice.message };
+  pulseToast(item, PULSE_MINE_TOAST_MS);
+  pulseNotice(item);
+  void pulseMineAck(notice.id);
+}
+
+async function pulseMineAck(id) {
+  try {
+    await authorisedFetch(`${PULSE_MINE_URL}${id}/read/`, { method: 'POST' });
+  } catch (error) {
+    console.error('The personal notice could not be marked read.', error);
+  }
+}
+
+async function pulseMine(mine) {
+  if (pulseMineInFlight) {
+    return;
+  }
+  pulseMineInFlight = true;
+  try {
+    const stored = sessionStorage.getItem(PULSE_MINE_KEY);
+    const latestId = Number(mine.latest_id);
+    let sinceId = null;
+    if (stored === null) {
+      if (Number(mine.count) > 0) {
+        sinceId = 0;
+      }
+    } else if (latestId > Number(stored)) {
+      sinceId = Number(stored);
+    }
+    if (sinceId !== null && pulseRunning) {
+      const notices = await pulseMineFetch(sinceId);
+      if (notices === null) {
+        return;
+      }
+      const shown = sinceId === 0 ? notices.slice(-PULSE_MINE_FIRST) : notices;
+      for (const notice of shown) {
+        pulseMineShow(notice);
+      }
+    }
+    sessionStorage.setItem(PULSE_MINE_KEY, String(latestId));
+  } catch (error) {
+    console.error('The personal notices could not be read.', error);
+    pulseFailures += 1;
+  } finally {
+    pulseMineInFlight = false;
   }
 }
 
@@ -137,8 +214,7 @@ function pulseStack() {
   return host;
 }
 
-function pulseToast(key) {
-  const item = PULSE_ITEMS[key];
+function pulseToast(item, ms = PULSE_TOAST_MS) {
   const host = pulseStack();
   while (host.children.length >= PULSE_TOAST_MAX) {
     host.firstElementChild.remove();
@@ -165,11 +241,13 @@ function pulseToast(key) {
 
   body.addEventListener('click', () => {
     dismiss();
-    window.location.href = item.href;
+    if (item.href) {
+      window.location.href = item.href;
+    }
   });
   close.addEventListener('click', dismiss);
 
-  timer = window.setTimeout(dismiss, PULSE_TOAST_MS);
+  timer = window.setTimeout(dismiss, ms);
   toast.append(body, close);
   host.appendChild(toast);
   requestAnimationFrame(() => {
@@ -177,8 +255,7 @@ function pulseToast(key) {
   });
 }
 
-function pulseNotice(key) {
-  const item = PULSE_ITEMS[key];
+function pulseNotice(item) {
   if (!document.hidden || localStorage.getItem(PULSE_ALERTS_KEY) !== 'on') {
     return;
   }
@@ -189,7 +266,9 @@ function pulseNotice(key) {
     const notice = new Notification('Lumina Admin', { body: item.message });
     notice.addEventListener('click', () => {
       window.focus();
-      window.location.href = item.href;
+      if (item.href) {
+        window.location.href = item.href;
+      }
     });
   } catch (error) {
     console.error('The browser notification could not be shown.', error);
