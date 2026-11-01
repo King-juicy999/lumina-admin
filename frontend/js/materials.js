@@ -283,3 +283,4 @@ populateFaculties();
 populateDepartments('all');
 refreshCascade();
 loadMaterials();
+onStaffPulse(['uploads'], loadMaterials);

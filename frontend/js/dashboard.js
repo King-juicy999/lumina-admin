@@ -952,6 +952,15 @@ async function loadLatest() {
   }
 }
 
+function refreshDashboard() {
+  loadHero();
+  loadQueue();
+  if (document.getElementById(dash('dash-inbox'))) {
+    loadInbox();
+  }
+  loadLatest();
+}
+
 function bootDashboard() {
   renderGreeting();
   buildQueue();
@@ -982,6 +991,7 @@ function bootDashboard() {
     loadInbox();
   }
   loadLatest();
+  onStaffPulse(null, refreshDashboard);
 }
 
 window.profileReady.then(() => {

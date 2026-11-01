@@ -244,4 +244,5 @@ function startResets() {
   resetElements.tabResets.addEventListener('click', () => setInboxTab('resets'));
   resetElements.grid.addEventListener('click', handleResetClick);
   resetElements.retry.addEventListener('click', loadResets);
+  onStaffPulse(['password_resets'], loadResets);
 }

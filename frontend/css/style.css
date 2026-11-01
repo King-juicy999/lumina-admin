@@ -3677,3 +3677,212 @@ body[data-page='users'] .records-grid {
     padding: 0.7rem 0.8rem;
   }
 }
+
+.pulse-stack {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  width: min(20rem, calc(100vw - 2rem));
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  z-index: 400;
+}
+
+.pulse-toast {
+  display: flex;
+  align-items: stretch;
+  background: var(--record);
+  border: var(--edge);
+  border-radius: 3px;
+  box-shadow: var(--shadow-card);
+  opacity: 1;
+  transform: translateY(0);
+  transition: transform 220ms var(--ease), opacity 220ms var(--ease);
+}
+
+.pulse-toast--in,
+.pulse-toast--out {
+  opacity: 0;
+  transform: translateY(0.7rem);
+}
+
+.pulse-toast__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0.85rem 0.65rem;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-family: var(--font-ui);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.pulse-toast__ref {
+  font-family: var(--font-record);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.pulse-toast__message {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.pulse-toast__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  padding: 0;
+  border: 0;
+  border-left: var(--edge);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.pulse-toast__close svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.pulse-toast__close line {
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pulse-toast__body:hover {
+    color: var(--stamp);
+  }
+
+  .pulse-toast__close:hover {
+    color: var(--filing-red);
+  }
+}
+
+.pulse-toast__body:active,
+.pulse-toast__close:active {
+  transform: scale(0.97);
+}
+
+.menu-alerts {
+  margin-top: 0.5rem;
+  padding: 0.7rem 1.2rem 0.6rem;
+  border-top: var(--edge);
+}
+
+.menu-alerts__row {
+  min-height: 2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.menu-alerts__label {
+  flex: 1;
+}
+
+.menu-alerts--plate {
+  min-height: 0;
+  gap: 0.45rem;
+  justify-content: flex-end;
+  padding-left: 0.6rem;
+}
+
+.menu-alerts__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  clip-path: inset(50%);
+}
+
+.menu-alerts__switch {
+  position: relative;
+  flex: none;
+  width: 2.3rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 24%, transparent);
+  transition: background 150ms var(--ease);
+}
+
+.menu-alerts__switch::after {
+  content: '';
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 50%;
+  background: #fffef8;
+  box-shadow: 0 1px 2px rgba(32, 48, 63, 0.35);
+  transition: transform 150ms var(--ease);
+}
+
+.menu-alerts__input:checked + .menu-alerts__switch {
+  background: var(--filing-red);
+}
+
+.menu-alerts__input:checked + .menu-alerts__switch::after {
+  transform: translateX(1.2rem);
+}
+
+.menu-alerts__input:focus-visible + .menu-alerts__switch {
+  outline: 2px solid var(--stamp);
+  outline-offset: 2px;
+}
+
+.menu-alerts__note {
+  margin: 0.3rem 0 0;
+  font-family: var(--font-record);
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 640px) {
+  .pulse-stack {
+    top: calc(4.5rem + env(safe-area-inset-top, 0px));
+    right: 0.75rem;
+    bottom: auto;
+    left: 0.75rem;
+    width: auto;
+  }
+
+  .pulse-toast--in,
+  .pulse-toast--out {
+    transform: translateY(-0.7rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-toast {
+    transition: opacity 150ms ease;
+    transform: none;
+  }
+
+  .pulse-toast--in,
+  .pulse-toast--out {
+    transform: none;
+  }
+
+  .menu-alerts__switch,
+  .menu-alerts__switch::after {
+    transition: none;
+  }
+}

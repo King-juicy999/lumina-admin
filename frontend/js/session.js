@@ -5,6 +5,7 @@ const SESSION_ROLE_KEY = 'lumina_admin_role';
 const SUPER_ADMIN = 'super_admin';
 const DEFAULT_ROLE = 'admin';
 const LOGOUT_TIMEOUT = 1500;
+const ALERTS_KEY = 'lumina_alerts';
 
 function getRole() {
   return sessionStorage.getItem(SESSION_ROLE_KEY) || DEFAULT_ROLE;
@@ -98,7 +99,56 @@ async function loadAndInitialize() {
   addHeaderRole();
   revealSuperAdminControls();
   revealOwnerControls();
+  initAlerts();
   loadInboxBadge();
+  onStaffPulse(['feedback'], loadInboxBadge);
+}
+
+function buildAlertsControl(variant) {
+  const row = pulseNode('label', 'menu-alerts__row');
+  row.appendChild(pulseNode('span', 'menu-alerts__label', 'Alerts'));
+  const input = pulseNode('input', 'menu-alerts__input');
+  input.type = 'checkbox';
+  input.checked = localStorage.getItem(ALERTS_KEY) === 'on';
+  input.addEventListener('change', () => setAlerts(input.checked));
+  const track = pulseNode('span', 'menu-alerts__switch');
+  track.setAttribute('aria-hidden', 'true');
+  row.append(input, track);
+  if (variant === 'panel') {
+    const note = pulseNode('p', 'menu-alerts__note', 'Pop ups while the console tab is open.');
+    const wrap = pulseNode('div', 'menu-alerts');
+    wrap.append(row, note);
+    return wrap;
+  }
+  row.classList.add('menu-alerts--plate');
+  return row;
+}
+
+function setAlerts(on) {
+  if (on) {
+    localStorage.setItem(ALERTS_KEY, 'on');
+    requestAlertsPermission();
+    return;
+  }
+  localStorage.removeItem(ALERTS_KEY);
+}
+
+function requestAlertsPermission() {
+  if (!('Notification' in window) || Notification.permission !== 'default') {
+    return;
+  }
+  Notification.requestPermission();
+}
+
+function initAlerts() {
+  const panel = document.getElementById('menu-panel');
+  const nav = document.querySelector('.plate-nav .plate-links');
+  if (panel) {
+    panel.insertBefore(buildAlertsControl('panel'), panel.querySelector('.menu-logout'));
+  }
+  if (nav) {
+    nav.insertBefore(buildAlertsControl('plate'), nav.querySelector('#logout-btn'));
+  }
 }
 
 function addHeaderRole() {

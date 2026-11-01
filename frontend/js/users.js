@@ -567,3 +567,4 @@ populateDepartments('all');
 populateLevels();
 refreshCascade();
 loadUsers();
+onStaffPulse(['signups'], loadUsers);

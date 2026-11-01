@@ -499,5 +499,6 @@ window.profileReady.then(() => {
 
   elements.retryBtn.addEventListener('click', loadNotes);
     elements.logout.addEventListener('click', signOut);
+    onStaffPulse(['feedback'], loadNotes);
   }
 });
