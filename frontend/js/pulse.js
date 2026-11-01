@@ -170,6 +170,7 @@ function pulseToast(key) {
   close.addEventListener('click', dismiss);
 
   timer = window.setTimeout(dismiss, PULSE_TOAST_MS);
+  toast.append(body, close);
   host.appendChild(toast);
   requestAnimationFrame(() => {
     toast.classList.remove('pulse-toast--in');
